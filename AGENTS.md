@@ -116,6 +116,7 @@ FILES_TO_SEND:
 NEXT_ACTION: <instruksi singkat apa yang ditunggu dari user, misal "ACC lanjut Tahap 2" atau "Review preview lalu balas ACC untuk render full video">
 ---END_HANDOFF---
 ```
-- Jika tidak ada file yang perlu dikirim (misal Gate 1 atau Gate 3), isi `FILES_TO_SEND: none`.
+- Jika tidak ada file yang perlu dikirim (misal Gate 1), isi `FILES_TO_SEND: none`.
+- Pada **ACC Gate 3**, WAJIB sertakan master audio VO (`<part-dir>/audio/*.mp3`) di `FILES_TO_SEND` agar user langsung mendengarkan hasil rekaman suara karakter di chat!
 - Pada **ACC Gate 4**, wajib sertakan seluruh preview PNG (`previews/*.png`) di `FILES_TO_SEND`.
 - Pada **COMPLETED (Tahap 5)**, wajib sertakan seluruh file MP4 final (`render/*.mp4`) di `FILES_TO_SEND`.
