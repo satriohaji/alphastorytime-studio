@@ -23,8 +23,8 @@ if [ -f "$REPO_ROOT/.env" ]; then
   set +a
 fi
 
-# Mode izin eksekusi: default 'auto' (bisa ubah AGY_PERMISSION_FLAG='--dangerously-skip-permissions' di .env jika mau zero-prompt)
-PERM_FLAG="${AGY_PERMISSION_FLAG:---mode=auto}"
+# Mode izin eksekusi: default '--dangerously-skip-permissions' untuk headless non-interaktif
+PERM_FLAG="${AGY_PERMISSION_FLAG:---dangerously-skip-permissions}"
 
 MODE="${1:-}"
 shift || true
