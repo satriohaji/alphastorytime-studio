@@ -1,0 +1,26 @@
+{
+  "audio_file": "vo.mp3",
+  "total_duration_sec": 60.0,
+  "total_frames_30fps": 1800,
+  "fps": 30,
+  "segments": [
+    {
+      "id": 1,
+      "start": 0.0,
+      "end": 2.5,
+      "start_ts": "00:00:00.000",
+      "end_ts": "00:00:02.500",
+      "start_frame": 0,
+      "end_frame": 75,
+      "text": "Halo kawan-kawan, balik lagi sama Alpha!",
+      "words": [
+        {"no": 1, "word": "Halo", "start": 0.0, "end": 0.4, "start_frame": 0, "end_frame": 12},
+        {"no": 2, "word": "kawan-kawan,", "start": 0.4, "end": 1.1, "start_frame": 12, "end_frame": 33},
+        {"no": 3, "word": "balik", "start": 1.1, "end": 1.5, "start_frame": 33, "end_frame": 45},
+        {"no": 4, "word": "lagi", "start": 1.5, "end": 1.8, "start_frame": 45, "end_frame": 54},
+        {"no": 5, "word": "sama", "start": 1.8, "end": 2.1, "start_frame": 54, "end_frame": 63},
+        {"no": 6, "word": "Alpha!", "start": 2.1, "end": 2.5, "start_frame": 63, "end_frame": 75}
+      ]
+    }
+  ]
+}

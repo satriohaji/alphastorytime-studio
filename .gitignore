@@ -1,0 +1,42 @@
+# Dependencies & Environments
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Remotion & Build Caches
+.remotion/
+.cache/
+dist/
+build/
+
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+
+# Generated Heavy Media Artifacts (keep scripts/src in git, skip large binary renders)
+projects/*/render/*.mp4
+projects/*/render/*.mov
+projects/*/part-*/render/*.mp4
+projects/*/part-*/render/*.mov
+projects/*/previews/*.png
+projects/*/part-*/previews/*.png
+projects/*/audio/turns/
+projects/*/audio/*.wav
+projects/*/audio/*.mp3
+projects/*/part-*/audio/turns/
+projects/*/part-*/audio/*.wav
+projects/*/part-*/audio/*.mp3
+projects/*/public/audio/
+projects/*/public/sfx/
+projects/*/part-*/public/audio/
+projects/*/part-*/public/sfx/
+
+# Runtime & Logs
+logs/
+*.log
+.DS_Store
+Thumbs.db

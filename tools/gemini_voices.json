@@ -1,0 +1,12 @@
+{
+  "model": "gemini-3.8-flash-tts",
+  "api_version": "v1beta",
+  "default_gap_ms": 240,
+  "voices": {
+    "alpha": {
+      "voice_id": "voice_w6twpenhmuqf",
+      "source": "locked Oli voice-design v2 (AlphaStorytime Narrator)",
+      "default_style": "expressive, engaging Indonesian storyteller, clear pacing, immersive narration"
+    }
+  }
+}
