@@ -4,9 +4,9 @@
   "default_gap_ms": 240,
   "voices": {
     "alpha": {
-      "voice_id": "voice_w6twpenhmuqf",
-      "source": "locked Oli voice-design v2 (AlphaStorytime Narrator)",
-      "default_style": "expressive, engaging Indonesian storyteller, clear pacing, immersive narration"
+      "voice_id": "voice_onwkczqs6uoj",
+      "source": "Voice Design: charismatic young Indonesian male (native gaul/santai, yapping storyteller)",
+      "default_style": "expressive, energetic young Indonesian male storyteller, natural native Jakarta gaul, clear animated pacing"
     }
   }
 }
