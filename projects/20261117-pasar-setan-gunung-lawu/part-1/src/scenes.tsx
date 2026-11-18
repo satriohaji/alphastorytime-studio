@@ -5,128 +5,24 @@ import {AlphaCharacter3D} from '@shared/AlphaCharacter3D';
 import {
   AliveCharacterRig,
   findActiveWord,
-  HeadlineCapsule,
   RoomBackdrop,
   SpatialCameraRig,
-  STORY_FONT,
 } from '@shared/StudioStage';
+import {KineticEmphasisText} from './KineticMotionTypography';
 import {getMouthOpenness} from './lipSyncData';
 import type {SceneId} from './shots';
 import wordTimestamps from './word_timestamps.json';
 
 export const CHARACTER_MODE: '3d_webgl' | '2.5d_kokbisa' = '2.5d_kokbisa';
 
-// HUD Telemetry Plate (Lemo-Opuscar Dark-Doc style)
-function DarkDocTelemetry({
-  leftTag,
-  rightTag,
-  accent = '#38BDF8',
-}: {
-  leftTag: string;
-  rightTag: string;
-  accent?: string;
-}) {
-  return (
-    <div
-      style={{
-        position: 'absolute',
-        top: 60,
-        left: 50,
-        right: 50,
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '10px 20px',
-        backgroundColor: 'rgba(5, 8, 16, 0.75)',
-        border: `1px solid ${accent}`,
-        borderRadius: 12,
-        backdropFilter: 'blur(8px)',
-        zIndex: 25,
-        fontFamily: 'monospace',
-        fontSize: 16,
-        letterSpacing: 1.5,
-        color: '#E2E8F0',
-      }}
-    >
-      <div style={{display: 'flex', alignItems: 'center', gap: 10}}>
-        <div
-          style={{
-            width: 8,
-            height: 8,
-            borderRadius: '50%',
-            backgroundColor: accent,
-            boxShadow: `0 0 10px ${accent}`,
-          }}
-        />
-        <span>{leftTag}</span>
-      </div>
-      <span style={{color: accent, fontWeight: 700}}>{rightTag}</span>
-    </div>
-  );
-}
-
-// Visual Story Plate (Capsule under headline)
-function StoryVisualPlate({
-  title,
-  detail,
-  accent = '#EF4444',
-  top = 370,
-}: {
-  title: string;
-  detail: string;
-  accent?: string;
-  top?: number;
-}) {
-  return (
-    <div
-      style={{
-        position: 'absolute',
-        top,
-        left: 80,
-        right: 80,
-        backgroundColor: 'rgba(9, 13, 22, 0.92)',
-        border: `2px solid ${accent}`,
-        borderRadius: 24,
-        padding: '22px 28px',
-        boxShadow: `0 20px 50px rgba(0,0,0,0.8), 0 0 30px ${accent}22`,
-        zIndex: 20,
-      }}
-    >
-      <div
-        style={{
-          fontFamily: STORY_FONT,
-          fontSize: 28,
-          fontWeight: 900,
-          color: '#FFFFFF',
-          marginBottom: 6,
-          letterSpacing: 1,
-        }}
-      >
-        {title}
-      </div>
-      <div
-        style={{
-          fontFamily: STORY_FONT,
-          fontSize: 22,
-          fontWeight: 600,
-          color: '#CBD5E1',
-          lineHeight: 1.4,
-        }}
-      >
-        {detail}
-      </div>
-    </div>
-  );
-}
-
-// B-ROLL 1: Gunung Lawu 2800m & Sabana Pos 5
+// B-ROLL 1: Gunung Lawu 2800m & Sabana Pos 5 (Pure Cinematic, No Box/Badge)
 const MountainSabanaBroll: React.FC<{frame: number}> = ({frame}) => {
   const fogX1 = interpolate(frame, [0, 240], [0, -120]);
   const fogX2 = interpolate(frame, [0, 240], [-80, 40]);
 
   return (
     <div style={{position: 'absolute', inset: 0, overflow: 'hidden', backgroundColor: '#020617'}}>
-      {/* Sky & Stars */}
+      {/* Sky & Atmospheric Glow */}
       <div
         style={{
           position: 'absolute',
@@ -134,18 +30,14 @@ const MountainSabanaBroll: React.FC<{frame: number}> = ({frame}) => {
           background: 'radial-gradient(ellipse at 50% 20%, #1e1b4b 0%, #090d16 65%, #020617 100%)',
         }}
       />
-      {/* Mountain Silhouettes */}
+      {/* Layered Mountain Silhouettes */}
       <svg
         viewBox="0 0 1080 1920"
         style={{position: 'absolute', inset: 0, width: '100%', height: '100%'}}
       >
-        {/* Far Peak */}
         <polygon points="0,1100 240,820 540,980 820,780 1080,1050 1080,1920 0,1920" fill="#0f172a" />
-        {/* Mid Ridge */}
         <polygon points="0,1260 380,1020 720,1180 1080,1080 1080,1920 0,1920" fill="#090d16" />
-        {/* Foreground Crags & Sabana */}
         <polygon points="0,1480 320,1380 680,1460 1080,1350 1080,1920 0,1920" fill="#040711" />
-        {/* Cantigi Silhouette Trees */}
         <path d="M120,1380 L125,1260 L140,1280 L145,1230 L160,1270 L170,1220 L160,1380 Z" fill="#02040a" />
         <path d="M880,1350 L890,1240 L910,1260 L920,1200 L935,1250 L945,1350 Z" fill="#02040a" />
       </svg>
@@ -158,7 +50,7 @@ const MountainSabanaBroll: React.FC<{frame: number}> = ({frame}) => {
           left: fogX1,
           width: 1400,
           height: 380,
-          background: 'radial-gradient(ellipse at 50% 50%, rgba(148, 163, 184, 0.28) 0%, transparent 75%)',
+          background: 'radial-gradient(ellipse at 50% 50%, rgba(148, 163, 184, 0.3) 0%, transparent 75%)',
           filter: 'blur(35px)',
           pointerEvents: 'none',
         }}
@@ -176,33 +68,35 @@ const MountainSabanaBroll: React.FC<{frame: number}> = ({frame}) => {
         }}
       />
 
-      {/* Trail Signpost (Pos 5 Lawu) */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: 380,
-          left: 100,
-          backgroundColor: '#1E293B',
-          border: '3px solid #64748B',
-          borderRadius: 16,
-          padding: '24px 32px',
-          boxShadow: '0 20px 40px rgba(0,0,0,0.85), inset 0 2px 4px rgba(255,255,255,0.1)',
-        }}
-      >
-        <div style={{fontFamily: STORY_FONT, fontSize: 32, fontWeight: 900, color: '#F8FAFC', letterSpacing: 2}}>
-          SABANA POS 5 • LAWU
-        </div>
-        <div style={{fontFamily: 'monospace', fontSize: 20, color: '#38BDF8', marginTop: 6, fontWeight: 700}}>
-          ELEVASI 2.800 MDPL // JALUR CANDI CETHO
-        </div>
-      </div>
-
-      <DarkDocTelemetry leftTag="MT. LAWU • SEKTOR UTARA" rightTag="ELEV: 2800M // SUHU: 3°C" accent="#38BDF8" />
+      {/* Kinetic Typography Accent for B-Roll */}
+      <KineticEmphasisText
+        text="GAMELAN"
+        subtext="ALUNAN GAIB DI TENGAH HUTAN"
+        styleMode="tracking-spread"
+        startFrame={30}
+        durationFrames={105}
+        color="#F8FAFC"
+        accentColor="#A855F7"
+        fontSize={120}
+        zIndex={10}
+      />
+      <KineticEmphasisText
+        text="DENGERIN"
+        subtext="BAIK-BAIK"
+        styleMode="slam-punch"
+        side="center"
+        startFrame={145}
+        durationFrames={85}
+        color="#EF4444"
+        accentColor="#DC2626"
+        fontSize={130}
+        zIndex={10}
+      />
     </div>
   );
 };
 
-// B-ROLL 2: Flashlight Cones Vanishing into Thick Fog
+// B-ROLL 2: Flashlight Cones Vanishing into Thick Fog (Clean Cinematic)
 const VanishingLightsBroll: React.FC<{frame: number}> = ({frame}) => {
   const lightFade = interpolate(frame, [0, 160, 260], [1, 0.45, 0], {extrapolateRight: 'clamp'});
   const lightDistX = interpolate(frame, [0, 260], [0, 80]);
@@ -268,18 +162,34 @@ const VanishingLightsBroll: React.FC<{frame: number}> = ({frame}) => {
         }}
       />
 
-      <DarkDocTelemetry leftTag="RADAR SENTER TEMAN" rightTag="JARAK: HILANG DI KABUT" accent="#F59E0B" />
-      <StoryVisualPlate
-        title="Jejak Senter Terputus"
-        detail="Langkah Raka tertinggal • Titik cahaya rombongan di depan perlahan ditelan kabut malam"
-        accent="#F59E0B"
-        top={260}
+      {/* Kinetic Typography */}
+      <KineticEmphasisText
+        text="PASAR SETAN"
+        subtext="POS LIMA LAWU"
+        styleMode="giant-backdrop"
+        startFrame={25}
+        durationFrames={105}
+        color="#EF4444"
+        accentColor="#7F1D1D"
+        fontSize={135}
+        zIndex={10}
+      />
+      <KineticEmphasisText
+        text="H I L A N G"
+        subtext="JEJAK SENTER TERPUTUS"
+        styleMode="tracking-spread"
+        startFrame={145}
+        durationFrames={115}
+        color="#FEF08A"
+        accentColor="#CA8A04"
+        fontSize={120}
+        zIndex={10}
       />
     </div>
   );
 };
 
-// B-ROLL 3: POV Flashlight in Tall Savannah Reeds
+// B-ROLL 3: POV Flashlight in Tall Savannah Reeds (Clean Cinematic)
 const TallReedsPOVBroll: React.FC<{frame: number}> = ({frame}) => {
   const flicker = frame % 43 === 0 || frame % 87 === 0 ? 0.35 : 1.0;
   const sway = Math.sin(frame * 0.12) * 12;
@@ -306,26 +216,42 @@ const TallReedsPOVBroll: React.FC<{frame: number}> = ({frame}) => {
 
       {/* Tall Savannah Grass Reeds (Ilalang) */}
       <svg viewBox="0 0 1080 1920" style={{position: 'absolute', inset: 0, width: '100%', height: '100%'}}>
-        {/* Left tall blades */}
         <path d={`M-50,1920 Q${120 + sway},1300 220,950 Q${180 + sway},1200 40,1920 Z`} fill="#141E14" />
         <path d={`M40,1920 Q${200 + sway},1400 320,1050 Q${240 + sway},1350 140,1920 Z`} fill="#0B130B" />
-        {/* Right tall blades */}
         <path d={`M1130,1920 Q${960 - sway},1280 840,900 Q${900 - sway},1250 1040,1920 Z`} fill="#141E14" />
         <path d={`M1040,1920 Q${880 - sway},1380 760,1020 Q${820 - sway},1350 940,1920 Z`} fill="#0B130B" />
       </svg>
 
-      <DarkDocTelemetry leftTag="POV SENTER RAKA (12% DAYA)" rightTag="JALUR SETAPAK: TERPUTUS" accent="#EF4444" />
-      <StoryVisualPlate
-        title="Tersesat di Ilalang Dada"
-        detail="Senter mulai meredup • Jalur pendakian lenyap berganti semak liar setinggi dada"
-        accent="#EF4444"
-        top={260}
+      {/* Kinetic Typography */}
+      <KineticEmphasisText
+        text="MEREDUP"
+        subtext="SENTER LEMAH"
+        styleMode="slam-punch"
+        side="left"
+        startFrame={20}
+        durationFrames={95}
+        color="#FDE047"
+        accentColor="#EF4444"
+        fontSize={110}
+        zIndex={10}
+      />
+      <KineticEmphasisText
+        text="ILALANG"
+        subtext="TERPUTUS"
+        styleMode="vertical-tilted"
+        side="left"
+        startFrame={130}
+        durationFrames={160}
+        color="#4ADE80"
+        accentColor="#16A34A"
+        fontSize={120}
+        zIndex={10}
       />
     </div>
   );
 };
 
-// B-ROLL 4: Pasar Setan Supernatural Market Silhouettes
+// B-ROLL 4: Pasar Setan Supernatural Market Silhouettes (Clean Cinematic)
 const PasarSetanBroll: React.FC<{frame: number}> = ({frame}) => {
   const lanternSway = Math.sin(frame * 0.08) * 8;
   const mistFloat = interpolate(frame, [0, 215], [-50, 50]);
@@ -343,14 +269,10 @@ const PasarSetanBroll: React.FC<{frame: number}> = ({frame}) => {
 
       {/* Supernatural Stalls and Silhouettes */}
       <svg viewBox="0 0 1080 1920" style={{position: 'absolute', inset: 0, width: '100%', height: '100%'}}>
-        {/* Left stall roof */}
         <polygon points="40,1180 380,1080 340,1450 60,1500" fill="#170A24" />
         <line x1="80" y1="1200" x2="80" y2="1650" stroke="#2E1065" strokeWidth="8" />
-        {/* Right stall roof */}
         <polygon points="1040,1150 700,1060 740,1420 1020,1470" fill="#170A24" />
         <line x1="980" y1="1180" x2="980" y2="1650" stroke="#2E1065" strokeWidth="8" />
-
-        {/* Ethereal Shadow Figures */}
         <ellipse cx="440" cy="1380" rx="45" ry="90" fill="#0C0414" opacity="0.9" />
         <ellipse cx="620" cy="1360" rx="55" ry="105" fill="#0C0414" opacity="0.9" />
       </svg>
@@ -399,73 +321,94 @@ const PasarSetanBroll: React.FC<{frame: number}> = ({frame}) => {
         }}
       />
 
-      <DarkDocTelemetry leftTag="ANOMALI PASAR SETAN" rightTag="AROMA DUPA & GAMELAN" accent="#A855F7" />
-      <StoryVisualPlate
-        title="Pasar Gaib di Tengah Kabut"
-        detail="Lapak warung remang berjejer • Derap langkah kaki dan suara tawar-menawar terdengar jelas"
-        accent="#A855F7"
-        top={260}
+      {/* Kinetic Typography */}
+      <KineticEmphasisText
+        text="LANGKAH KAKI"
+        subtext="DERAP GAIB"
+        styleMode="slam-punch"
+        side="left"
+        startFrame={20}
+        durationFrames={80}
+        color="#F8FAFC"
+        accentColor="#9333EA"
+        fontSize={100}
+        zIndex={10}
+      />
+      <KineticEmphasisText
+        text="TAWAR MENAWAR"
+        styleMode="giant-backdrop"
+        startFrame={85}
+        durationFrames={65}
+        color="#F43F5E"
+        accentColor="#BE123C"
+        fontSize={115}
+        zIndex={10}
+      />
+      <KineticEmphasisText
+        text="BAU DUPA"
+        subtext="AROMA MENYENGAT"
+        styleMode="tracking-spread"
+        startFrame={145}
+        durationFrames={65}
+        color="#EF4444"
+        accentColor="#7F1D1D"
+        fontSize={125}
+        zIndex={10}
       />
     </div>
   );
 };
 
-// HYBRID PLATE: EKG Panic Heartbeat Monitor
-const EKGHeartbeatPlate: React.FC<{frame: number}> = ({frame}) => {
+// HYBRID EKG HEARTBEAT COMPONENT (Clean Wave, No Rounded Card Box)
+const CleanEKGLine: React.FC<{frame: number}> = ({frame}) => {
   const bpm = Math.min(148, Math.round(92 + frame * 0.22));
 
   return (
     <div
       style={{
         position: 'absolute',
-        top: 280,
-        left: 70,
-        right: 70,
-        backgroundColor: 'rgba(8, 11, 20, 0.95)',
-        border: '2px solid #EF4444',
-        borderRadius: 24,
-        padding: '20px 24px',
-        boxShadow: '0 20px 50px rgba(0,0,0,0.85), 0 0 35px rgba(239,68,68,0.25)',
-        zIndex: 18,
+        top: 220,
+        left: 0,
+        right: 0,
+        zIndex: 6,
+        pointerEvents: 'none',
       }}
     >
-      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12}}>
-        <div style={{fontFamily: STORY_FONT, fontSize: 26, fontWeight: 900, color: '#FFFFFF'}}>
-          Raka Membeku Ketakutan
-        </div>
-        <div style={{fontFamily: 'monospace', fontSize: 22, fontWeight: 800, color: '#EF4444'}}>
-          {bpm} BPM
-        </div>
-      </div>
-      {/* Animated EKG Waveform */}
-      <svg viewBox="0 0 940 80" style={{width: '100%', height: 60, overflow: 'visible'}}>
-        <path
-          d="M0,40 L180,40 L210,10 L230,70 L250,40 L420,40 L450,10 L470,70 L490,40 L680,40 L710,10 L730,70 L750,40 L940,40"
-          fill="none"
-          stroke="#EF4444"
-          strokeWidth="3.5"
-          strokeLinecap="round"
-        />
-      </svg>
       <div
         style={{
-          fontFamily: STORY_FONT,
-          fontSize: 20,
-          fontWeight: 600,
-          color: '#CBD5E1',
-          lineHeight: 1.4,
-          marginTop: 8,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: 12,
+          fontFamily: "'Impact', 'Arial Black', sans-serif",
+          fontSize: 32,
+          color: '#EF4444',
+          letterSpacing: 2,
+          textShadow: '0 0 20px rgba(239, 68, 68, 0.6)',
+          marginBottom: 10,
         }}
       >
-        Keringat dingin mengucur deras di tengah suhu hampir nol derajat
+        <span>❤️</span>
+        <span>{bpm} BPM</span>
       </div>
+      {/* Animated EKG Waveform */}
+      <svg viewBox="0 0 1080 80" style={{width: '100%', height: 60, overflow: 'visible'}}>
+        <path
+          d="M0,40 L200,40 L230,10 L250,70 L270,40 L500,40 L530,10 L550,70 L570,40 L780,40 L810,10 L830,70 L850,40 L1080,40"
+          fill="none"
+          stroke="#EF4444"
+          strokeWidth="4"
+          strokeLinecap="round"
+          style={{filter: 'drop-shadow(0 0 8px #EF4444)'}}
+        />
+      </svg>
     </div>
   );
 };
 
-// JUMPSCARE HORROR CLIMAX COMPONENT
+// JUMPSCARE HORROR CLIMAX COMPONENT (Massive Kinetic Shiver Typography)
 const HorrorJumpscareScene: React.FC<{frame: number}> = ({frame}) => {
-  const isWhisperStrike = frame >= 228; // Tepat pada kata "Mas... mau beli apa?"
+  const isWhisperStrike = frame >= 228;
   const shake = isWhisperStrike ? Math.sin(frame * 1.8) * 16 : 0;
   const redGlitch = isWhisperStrike && frame % 4 < 2;
 
@@ -492,16 +435,11 @@ const HorrorJumpscareScene: React.FC<{frame: number}> = ({frame}) => {
 
       {/* Shadow Figure Looming Behind Neck */}
       <svg viewBox="0 0 1080 1920" style={{position: 'absolute', inset: 0, width: '100%', height: '100%'}}>
-        {/* Hiker Neck Silhouette */}
         <ellipse cx="540" cy="1150" rx="140" ry="120" fill="#080C14" />
         <path d="M380,1200 Q540,1140 700,1200 L760,1650 L320,1650 Z" fill="#050810" />
-
-        {/* Terrifying Apparition Looming Directly Behind Neck */}
         <ellipse cx="540" cy="920" rx="120" ry="140" fill="#1C0606" opacity="0.95" />
-        {/* Piercing Glowing Hollow Red Eyes */}
         <circle cx="505" cy="920" r={isWhisperStrike ? 14 : 9} fill="#FF0033" />
         <circle cx="575" cy="920" r={isWhisperStrike ? 14 : 9} fill="#FF0033" />
-        {/* Long Ghost Hair Hanging Down */}
         <path d="M420,920 Q390,1150 430,1380 L480,1380 Q450,1150 460,920 Z" fill="#0A0202" />
         <path d="M660,920 Q690,1150 650,1380 L600,1380 Q630,1150 620,920 Z" fill="#0A0202" />
       </svg>
@@ -521,34 +459,47 @@ const HorrorJumpscareScene: React.FC<{frame: number}> = ({frame}) => {
         }}
       />
 
-      {/* Massive Kinetic Horror Text */}
-      {isWhisperStrike && (
-        <div
-          style={{
-            position: 'absolute',
-            top: 280,
-            left: 40,
-            right: 40,
-            textAlign: 'center',
-            fontFamily: STORY_FONT,
-            fontSize: 64,
-            fontWeight: 900,
-            color: '#FFFFFF',
-            textShadow: '0 0 30px #EF4444, 0 0 60px #DC2626',
-            letterSpacing: 3,
-            zIndex: 35,
-          }}
-        >
-          "MAS... MAU BELI APA?"
-        </div>
-      )}
+      {/* Pre-whisper text */}
+      <KineticEmphasisText
+        text="NAPAS DINGIN"
+        subtext="DI TENGKUK LEHER"
+        styleMode="tracking-spread"
+        startFrame={20}
+        durationFrames={105}
+        color="#94A3B8"
+        accentColor="#475569"
+        fontSize={100}
+        zIndex={10}
+      />
+      <KineticEmphasisText
+        text="BISIKAN"
+        styleMode="giant-backdrop"
+        startFrame={130}
+        durationFrames={90}
+        color="#EF4444"
+        accentColor="#991B1B"
+        fontSize={140}
+        zIndex={10}
+      />
 
-      <DarkDocTelemetry leftTag="PERINGATAN: KONTAK GAIB" rightTag="SUARA BISIKAN TENGKUK" accent="#EF4444" />
+      {/* THE PEAK JUMPSCARE KINETIC TYPOGRAPHY */}
+      {isWhisperStrike && (
+        <KineticEmphasisText
+          text={'"MAS... MAU BELI APA?"'}
+          styleMode="horror-shiver"
+          startFrame={228}
+          durationFrames={120}
+          color="#FFFFFF"
+          accentColor="#EF4444"
+          fontSize={68}
+          zIndex={40}
+        />
+      )}
     </div>
   );
 };
 
-// MASTER SCENE RENDERER WITH 10 CINEMATIC SHOTS
+// MASTER SCENE RENDERER WITH 10 CINEMATIC SHOTS & DYNAMIC TYPOGRAPHY
 export const SceneRenderer: React.FC<{
   id: SceneId;
   duration: number;
@@ -564,17 +515,33 @@ export const SceneRenderer: React.FC<{
     return (
       <SpatialCameraRig zoomFrom={1.0} zoomTo={1.05} durationFrames={duration}>
         <RoomBackdrop preset="horror-dark" effect="vignette-pulse" />
-        <HeadlineCapsule
-          badge="KISAH NYATA • GUNUNG LAWU"
-          badgeColor="#EF4444"
-          borderColor="#DC2626"
-          title="PASAR SETAN 2800 MDPL"
+
+        {/* Dynamic Kinetic Emphasis Typography behind Alpha (zIndex: 8) */}
+        <KineticEmphasisText
+          text="2.800 M"
+          subtext="ELEVASI EKSTREM"
+          styleMode="vertical-tilted"
+          side="right"
+          startFrame={95}
+          durationFrames={75}
+          color="#FFFFFF"
+          accentColor="#F59E0B"
+          fontSize={115}
+          zIndex={8}
         />
-        <StoryVisualPlate
-          title="Misteri Sabana Pos 5"
-          detail="Ketinggian 2800m • Kabut tebal turun mendadak & riuh pasar gaib"
-          accent="#EF4444"
+        <KineticEmphasisText
+          text="KABUT"
+          subtext="PEKAT MEMBUMBUNG"
+          styleMode="giant-backdrop"
+          startFrame={170}
+          durationFrames={105}
+          color="#E2E8F0"
+          accentColor="#38BDF8"
+          fontSize={150}
+          zIndex={8}
         />
+
+        {/* Alpha Character Rig in Foreground (zIndex: 15) */}
         <AliveCharacterRig
           mouthOpen={mouthOpen}
           enterFrom="bottom"
@@ -604,12 +571,6 @@ export const SceneRenderer: React.FC<{
     return (
       <SpatialCameraRig zoomFrom={1.02} zoomTo={1.07} durationFrames={duration}>
         <MountainSabanaBroll frame={localFrame} />
-        <StoryVisualPlate
-          title="Gunung Lawu 2.800 MDPL"
-          detail="Hutan sunyi membisu • Kabut tebal menyapu sabana dan alunan gamelan gaib terdengar"
-          accent="#38BDF8"
-          top={250}
-        />
       </SpatialCameraRig>
     );
   }
@@ -619,18 +580,32 @@ export const SceneRenderer: React.FC<{
     return (
       <SpatialCameraRig zoomFrom={1.0} zoomTo={1.06} durationFrames={duration}>
         <RoomBackdrop preset="mystery-cold" effect="fog-drift" />
-        <HeadlineCapsule
-          badge="JALUR CANDI CETHO"
-          badgeColor="#38BDF8"
-          borderColor="#0284C7"
-          title="PENDAKIAN MENJELANG GELAP"
+
+        {/* Kinetic Emphasis Typography behind Alpha */}
+        <KineticEmphasisText
+          text="CANDI CETHO"
+          subtext="JALUR PENDAKIAN"
+          styleMode="vertical-tilted"
+          side="right"
+          startFrame={55}
+          durationFrames={85}
+          color="#38BDF8"
+          accentColor="#0284C7"
+          fontSize={110}
+          zIndex={8}
         />
-        <StoryVisualPlate
-          title="Raka Mendaki Jalur Cetho"
-          detail="Menjelang petang, kabut pekat mendadak menutup sabana Pos Lima Lawu"
-          accent="#06B6D4"
-          top={370}
+        <KineticEmphasisText
+          text="SABANA"
+          subtext="POS LIMA LAWU"
+          styleMode="giant-backdrop"
+          startFrame={140}
+          durationFrames={105}
+          color="#CBD5E1"
+          accentColor="#06B6D4"
+          fontSize={140}
+          zIndex={8}
         />
+
         <AliveCharacterRig
           mouthOpen={mouthOpen}
           enterFrom="bottom"
@@ -678,18 +653,31 @@ export const SceneRenderer: React.FC<{
     return (
       <SpatialCameraRig zoomFrom={1.05} zoomTo={1.12} durationFrames={duration}>
         <RoomBackdrop preset="mystery-cold" effect="vignette-pulse" />
-        <HeadlineCapsule
-          badge="SUNYI TOTAL • LAWU"
-          badgeColor="#A855F7"
-          borderColor="#7E22CE"
-          title="ANGIN BERHENTI MENDADAK"
+
+        {/* Kinetic Emphasis Typography behind Alpha */}
+        <KineticEmphasisText
+          text="BERHENTI"
+          subtext="ANGIN GUNUNG SIRNA"
+          styleMode="giant-backdrop"
+          startFrame={45}
+          durationFrames={95}
+          color="#E2E8F0"
+          accentColor="#A855F7"
+          fontSize={135}
+          zIndex={8}
         />
-        <StoryVisualPlate
-          title="Keheningan Mencekam"
-          detail="Angin gunung yang kencang mendadak sirna • Suasana berubah hening tak bernyawa"
-          accent="#A855F7"
-          top={370}
+        <KineticEmphasisText
+          text="S U N Y I"
+          subtext="SENYAP TOTAL"
+          styleMode="tracking-spread"
+          startFrame={145}
+          durationFrames={105}
+          color="#C084FC"
+          accentColor="#7E22CE"
+          fontSize={120}
+          zIndex={8}
         />
+
         <AliveCharacterRig
           mouthOpen={mouthOpen}
           enterFrom="bottom"
@@ -728,13 +716,44 @@ export const SceneRenderer: React.FC<{
     return (
       <SpatialCameraRig zoomFrom={1.02} zoomTo={1.07} durationFrames={duration}>
         <RoomBackdrop preset="horror-dark" effect="horror-glitch" />
-        <HeadlineCapsule
-          badge="TEROR DINGIN • 0°C"
-          badgeColor="#EF4444"
-          borderColor="#DC2626"
-          title="JANTUNG DEG-DEGAN PARAH"
+        <CleanEKGLine frame={localFrame} />
+
+        {/* Kinetic Emphasis Typography behind Alpha */}
+        <KineticEmphasisText
+          text="M E M B E K U"
+          styleMode="vertical-tilted"
+          side="left"
+          startFrame={15}
+          durationFrames={80}
+          color="#38BDF8"
+          accentColor="#0284C7"
+          fontSize={110}
+          zIndex={8}
         />
-        <EKGHeartbeatPlate frame={localFrame} />
+        <KineticEmphasisText
+          text="DEG-DEGAN"
+          subtext="JANTUNG BERDETAK KENCANG"
+          styleMode="slam-punch"
+          side="right"
+          startFrame={80}
+          durationFrames={95}
+          color="#EF4444"
+          accentColor="#B91C1C"
+          fontSize={100}
+          zIndex={8}
+        />
+        <KineticEmphasisText
+          text="0° CELSIUS"
+          subtext="DINGIN EKSTREM"
+          styleMode="giant-backdrop"
+          startFrame={175}
+          durationFrames={80}
+          color="#F1F5F9"
+          accentColor="#38BDF8"
+          fontSize={130}
+          zIndex={8}
+        />
+
         <AliveCharacterRig
           mouthOpen={mouthOpen}
           enterFrom="bottom"
@@ -798,17 +817,32 @@ export const SceneRenderer: React.FC<{
   return (
     <SpatialCameraRig zoomFrom={1.0} zoomTo={1.05} durationFrames={duration}>
       <RoomBackdrop preset="horror-dark" effect="vignette-pulse" />
-      <HeadlineCapsule
-        badge="BERSAMBUNG KE PART 2"
-        badgeColor="#EF4444"
-        borderColor="#DC2626"
-        title="SIAPA DI BELAKANG RAKA?"
+
+      {/* Kinetic Typography */}
+      <KineticEmphasisText
+        text="SIAPA DIA?"
+        subtext="SOSOK DI BALIK KABUT"
+        styleMode="giant-backdrop"
+        startFrame={10}
+        durationFrames={75}
+        color="#CBD5E1"
+        accentColor="#EF4444"
+        fontSize={135}
+        zIndex={8}
       />
-      <StoryVisualPlate
-        title="Lanjut ke Part 2!"
-        detail="Siapa yang menyapa Raka di tengah kabut itu? Tulis tebakanmu di komentar & tonton Part 2!"
-        accent="#EF4444"
+      <KineticEmphasisText
+        text="PART 02"
+        subtext="LANJUT SEKARANG"
+        styleMode="vertical-tilted"
+        side="right"
+        startFrame={75}
+        durationFrames={65}
+        color="#EF4444"
+        accentColor="#DC2626"
+        fontSize={120}
+        zIndex={8}
       />
+
       <AliveCharacterRig
         mouthOpen={mouthOpen}
         enterFrom="bottom"
