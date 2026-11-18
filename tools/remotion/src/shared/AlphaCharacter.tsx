@@ -34,6 +34,8 @@ export interface AlphaCharacterProps {
   timeSec?: number;
   /** Optional rim-light tint matching the current room mood */
   rimColor?: string;
+  /** Hoodie color style: default is signature 3D indigo/blue (#5B5FE8) or classic red (#DC2626) */
+  hoodieColor?: string;
 }
 
 export function getMouthShapeForWord(word: string, isTalking: boolean): MouthShape {
@@ -47,24 +49,35 @@ export function getMouthShapeForWord(word: string, isTalking: boolean): MouthSha
   return 'open_a';
 }
 
+/**
+ * AlphaCharacter - 2.5D "Kok Bisa" Mascot Rig with Rossark Motion Engine
+ * Signature Visual Identity:
+ * - Folded ribbed dark beanie with dome
+ * - 4 stylized hair tufts spilling over forehead
+ * - Cute chibi round head with volumetric 2.5D shading
+ * - Dual-catchlight anime eyes with Rossark blink & gaze
+ * - Kangaroo pocket hoodie with drawstrings & metal aglets
+ */
 export const AlphaCharacter: React.FC<AlphaCharacterProps> = ({
-  scale = 1.65,
-  expression,
-  bodyPose,
-  mouthOpen,
+  scale = 1.75,
+  expression = 'happy',
+  bodyPose = 'idle',
+  mouthOpen = 0,
   mouthShape,
   activeWord,
   isTalking,
   timeSec,
   rimColor,
+  hoodieColor = '#5B5FE8',
 }) => {
   const frame = useCurrentFrame();
   const tMs = timeSec !== undefined ? timeSec * 1000 : frameToMs(frame, 30);
   const t = tMs / 1000;
 
-  const acousticOpen = mouthOpen !== undefined ? Math.max(0, Math.min(1, mouthOpen)) : undefined;
-  const speaking =
-    acousticOpen !== undefined ? acousticOpen >= 0.08 : Boolean(isTalking);
+  const acousticOpen = mouthOpen !== undefined ? Math.max(0, Math.min(1, mouthOpen)) : 0;
+  const speaking = acousticOpen >= 0.08 || Boolean(isTalking);
+
+  const isShock = expression === 'shock' || expression === 'tense';
 
   const resolvedShape: MouthShape = !speaking
     ? 'closed'
@@ -72,210 +85,188 @@ export const AlphaCharacter: React.FC<AlphaCharacterProps> = ({
       ? mouthShape
       : activeWord
         ? getMouthShapeForWord(activeWord, true)
-        : acousticOpen !== undefined && acousticOpen < 0.28
+        : acousticOpen < 0.28
           ? 'narrow_u'
           : 'open_a';
 
-  // Calm breathing with volume preservation & natural head motion
-  const breathScaleY = 1 + wave(tMs, 2600) * 0.016 + (speaking ? (acousticOpen ?? 0.35) * 0.014 : 0);
+  // Calm breathing with volume preservation & natural head motion (Rossark)
+  const breathScaleY = 1 + wave(tMs, 2600) * 0.016 + (speaking ? acousticOpen * 0.014 : 0);
   const breathScaleX = preserveVolumeX(breathScaleY);
   const breathY = wave(tMs, 2600) * 3.5;
   const headTilt =
     expression === 'thinking'
-      ? -5
+      ? -4.5
       : expression === 'smug'
-        ? 4
-        : expression === 'tense'
-          ? -2.5
+        ? 3.8
+        : expression === 'tense' || expression === 'shock'
+          ? -2.0 + Math.sin(t * 12) * 0.8
           : wave(tMs, 3400) * 1.8;
 
-  // Asymmetric clip-safe blink + smooth pupil gaze from rossark-motion-skill
+  // Asymmetric clip-safe blink + smooth pupil gaze (Rossark Motion)
   const blink = computeBlinkLid(tMs, 3400, 0, 3);
   const eyeScaleY = Math.max(0.06, 1 - blink);
   const gaze = computePupilGaze(tMs, 0, 0, 2.8, 0.15);
 
+  // Secondary string swing
+  const stringSwingLeft = Math.sin(t * 3.5) * 5.0;
+  const stringSwingRight = Math.cos(t * 3.2) * 5.0;
+
   const getLeftArmTransform = () => {
     switch (bodyPose) {
       case 'wave':
-        return `rotate(${-125 + Math.sin(t * 10) * 15} 135 285)`;
+        return `rotate(${-125 + Math.sin(t * 10) * 15} 125 285)`;
       case 'shrug':
-        return 'rotate(-55 135 285)';
+        return 'rotate(-55 125 285)';
       case 'gesture_left':
-        return `rotate(${-70 + Math.sin(t * 5) * 8} 135 285)`;
+        return `rotate(${-72 + Math.sin(t * 5) * 8} 125 285)`;
       default:
-        return 'rotate(12 135 285)';
+        if (isShock) {
+          return `rotate(${-128 + Math.sin(t * 14) * 4} 125 285)`;
+        }
+        return 'rotate(12 125 285)';
     }
   };
 
   const getRightArmTransform = () => {
     switch (bodyPose) {
       case 'gesture_right':
-        return `rotate(${68 + Math.sin(t * 5) * 8} 265 285)`;
+        return `rotate(${70 + Math.sin(t * 5) * 8} 275 285)`;
       case 'point':
-        return 'rotate(85 265 285)';
+        return 'rotate(85 275 285)';
       case 'shrug':
-        return 'rotate(55 265 285)';
+        return 'rotate(55 275 285)';
       case 'think':
-        return 'rotate(115 265 285)';
+        return 'rotate(115 275 285)';
       default:
-        return 'rotate(-12 265 285)';
+        if (isShock) {
+          return `rotate(${128 + Math.cos(t * 14) * 4} 275 285)`;
+        }
+        return 'rotate(-12 275 285)';
     }
   };
 
   const renderEyes = () => {
-    if (blink > 0.85) {
+    if (blink > 0.82) {
+      return (
+        <g stroke="#18181C" strokeWidth="5" fill="none" strokeLinecap="round">
+          <path d="M 152 182 Q 170 188 188 182" />
+          <path d="M 212 182 Q 230 188 248 182" />
+        </g>
+      );
+    }
+
+    if (isShock) {
+      // Terrified horror pinprick eyes (matching Alpha 3D shock mode)
       return (
         <>
-          <path d="M 155 178 Q 170 184 185 178" stroke="#18181B" strokeWidth="5" fill="none" strokeLinecap="round" />
-          <path d="M 215 178 Q 230 184 245 178" stroke="#18181B" strokeWidth="5" fill="none" strokeLinecap="round" />
+          {/* Left Eye */}
+          <g transform={`translate(170, 180) scale(1, ${eyeScaleY}) translate(-170, -180)`}>
+            <ellipse cx="170" cy="180" rx="16" ry="19" fill="#FFFFFF" stroke="#18181C" strokeWidth="4" />
+            <circle cx={170 + gaze.x * 0.4} cy={180 + gaze.y * 0.4} r="5.5" fill="#2563EB" />
+            <circle cx={170 + gaze.x * 0.4} cy={180 + gaze.y * 0.4} r="2.4" fill="#0A0E1A" />
+            <circle cx={168 + gaze.x * 0.4} cy={177 + gaze.y * 0.4} r="1.8" fill="#FFFFFF" />
+          </g>
+          {/* Right Eye */}
+          <g transform={`translate(230, 180) scale(1, ${eyeScaleY}) translate(-230, -180)`}>
+            <ellipse cx="230" cy="180" rx="16" ry="19" fill="#FFFFFF" stroke="#18181C" strokeWidth="4" />
+            <circle cx={230 + gaze.x * 0.4} cy={180 + gaze.y * 0.4} r="5.5" fill="#2563EB" />
+            <circle cx={230 + gaze.x * 0.4} cy={180 + gaze.y * 0.4} r="2.4" fill="#0A0E1A" />
+            <circle cx={228 + gaze.x * 0.4} cy={177 + gaze.y * 0.4} r="1.8" fill="#FFFFFF" />
+          </g>
+          {/* Terrified high brows */}
+          <path d="M 150 148 Q 168 136 188 152" stroke="#18181C" strokeWidth="5.5" fill="none" strokeLinecap="round" />
+          <path d="M 212 152 Q 232 136 250 148" stroke="#18181C" strokeWidth="5.5" fill="none" strokeLinecap="round" />
+          {/* Sweat drop lines */}
+          <path d="M 134 130 L 138 146 M 142 132 L 146 144" stroke="#60A5FA" strokeWidth="3" strokeLinecap="round" />
         </>
       );
     }
 
-    switch (expression) {
-      case 'shock':
-        return (
-          <>
-            <g transform={`translate(170, 176) scale(1, ${eyeScaleY}) translate(-170, -176)`}>
-              <ellipse cx="170" cy="176" rx="15" ry="18" fill="#FFFFFF" stroke="#18181B" strokeWidth="4" />
-              <circle cx={170 + gaze.x * 0.5} cy={176 + gaze.y * 0.5} r="6" fill="#EF4444" />
-              <circle cx={168 + gaze.x * 0.5} cy={173 + gaze.y * 0.5} r="2.5" fill="#FFFFFF" />
-            </g>
-            <g transform={`translate(230, 176) scale(1, ${eyeScaleY}) translate(-230, -176)`}>
-              <ellipse cx="230" cy="176" rx="15" ry="18" fill="#FFFFFF" stroke="#18181B" strokeWidth="4" />
-              <circle cx={230 + gaze.x * 0.5} cy={176 + gaze.y * 0.5} r="6" fill="#EF4444" />
-              <circle cx={228 + gaze.x * 0.5} cy={173 + gaze.y * 0.5} r="2.5" fill="#FFFFFF" />
-            </g>
-            <path d="M 152 146 Q 170 135 188 148" stroke="#18181B" strokeWidth="5" fill="none" strokeLinecap="round" />
-            <path d="M 212 148 Q 230 135 248 146" stroke="#18181B" strokeWidth="5" fill="none" strokeLinecap="round" />
-          </>
-        );
-      case 'thinking':
-        return (
-          <>
-            <g transform={`translate(170, 176) scale(1, ${eyeScaleY}) translate(-170, -176)`}>
-              <ellipse cx="170" cy="176" rx="11" ry="12" fill="#18181B" />
-              <circle cx={173 + gaze.x * 0.6} cy={171 + gaze.y * 0.6} r="4" fill="#FFFFFF" />
-            </g>
-            <g transform={`translate(230, 176) scale(1, ${eyeScaleY}) translate(-230, -176)`}>
-              <ellipse cx="230" cy="176" rx="11" ry="12" fill="#18181B" />
-              <circle cx={233 + gaze.x * 0.6} cy={171 + gaze.y * 0.6} r="4" fill="#FFFFFF" />
-            </g>
-            <path d="M 154 158 Q 170 162 186 156" stroke="#18181B" strokeWidth="4.5" fill="none" strokeLinecap="round" />
-            <path d="M 214 150 Q 230 142 246 150" stroke="#18181B" strokeWidth="4.5" fill="none" strokeLinecap="round" />
-          </>
-        );
-      case 'squint':
-        return (
-          <>
-            <path d="M 154 176 L 186 176" stroke="#18181B" strokeWidth="7" strokeLinecap="round" />
-            <path d="M 214 176 L 246 176" stroke="#18181B" strokeWidth="7" strokeLinecap="round" />
-            <path d="M 154 162 L 186 167" stroke="#18181B" strokeWidth="5" strokeLinecap="round" />
-            <path d="M 246 162 L 214 167" stroke="#18181B" strokeWidth="5" strokeLinecap="round" />
-          </>
-        );
-      case 'tense':
-        return (
-          <>
-            <g transform={`translate(170, 176) scale(1, ${eyeScaleY}) translate(-170, -176)`}>
-              <ellipse cx="170" cy="176" rx="12" ry="11" fill="#FFFFFF" stroke="#18181B" strokeWidth="3.5" />
-              <circle cx={170 + gaze.x * 0.6} cy={176 + gaze.y * 0.6} r="6.5" fill="#18181B" />
-              <circle cx={168 + gaze.x * 0.6} cy={173 + gaze.y * 0.6} r="2.2" fill="#FFFFFF" />
-            </g>
-            <g transform={`translate(230, 176) scale(1, ${eyeScaleY}) translate(-230, -176)`}>
-              <ellipse cx="230" cy="176" rx="12" ry="11" fill="#FFFFFF" stroke="#18181B" strokeWidth="3.5" />
-              <circle cx={230 + gaze.x * 0.6} cy={176 + gaze.y * 0.6} r="6.5" fill="#18181B" />
-              <circle cx={228 + gaze.x * 0.6} cy={173 + gaze.y * 0.6} r="2.2" fill="#FFFFFF" />
-            </g>
-            <path d="M 153 156 L 186 163" stroke="#18181B" strokeWidth="5" strokeLinecap="round" />
-            <path d="M 247 156 L 214 163" stroke="#18181B" strokeWidth="5" strokeLinecap="round" />
-          </>
-        );
-      case 'smug':
-        return (
-          <>
-            <g transform={`translate(170, 178) scale(1, ${eyeScaleY}) translate(-170, -178)`}>
-              <ellipse cx="170" cy="178" rx="11" ry="9" fill="#18181B" />
-              <circle cx={167 + gaze.x * 0.4} cy={175 + gaze.y * 0.4} r="3.5" fill="#FFFFFF" />
-            </g>
-            <g transform={`translate(230, 178) scale(1, ${eyeScaleY}) translate(-230, -178)`}>
-              <ellipse cx="230" cy="178" rx="11" ry="9" fill="#18181B" />
-              <circle cx={227 + gaze.x * 0.4} cy={175 + gaze.y * 0.4} r="3.5" fill="#FFFFFF" />
-            </g>
-            <path d="M 153 160 Q 170 156 187 162" stroke="#18181B" strokeWidth="4.5" fill="none" strokeLinecap="round" />
-            <path d="M 213 158 Q 230 148 247 154" stroke="#18181B" strokeWidth="4.5" fill="none" strokeLinecap="round" />
-          </>
-        );
-      case 'happy':
-      default:
-        return (
-          <>
-            <g transform={`translate(170, 176) scale(1, ${eyeScaleY}) translate(-170, -176)`}>
-              <ellipse cx="170" cy="176" rx="11" ry="13" fill="#18181B" />
-              <circle cx={166 + gaze.x * 0.5} cy={171 + gaze.y * 0.5} r="4" fill="#FFFFFF" />
-            </g>
-            <g transform={`translate(230, 176) scale(1, ${eyeScaleY}) translate(-230, -176)`}>
-              <ellipse cx="230" cy="176" rx="11" ry="13" fill="#18181B" />
-              <circle cx={226 + gaze.x * 0.5} cy={171 + gaze.y * 0.5} r="4" fill="#FFFFFF" />
-            </g>
-            <path d="M 154 156 Q 170 148 186 156" stroke="#18181B" strokeWidth="4.5" fill="none" strokeLinecap="round" />
-            <path d="M 214 156 Q 230 148 246 156" stroke="#18181B" strokeWidth="4.5" fill="none" strokeLinecap="round" />
-          </>
-        );
-    }
+    // Default: Big Sparkling Kok Bisa Anime Eyes with Dual Glossy Catchlights
+    return (
+      <>
+        {/* Left Eye */}
+        <g transform={`translate(170, 180) scale(1, ${eyeScaleY}) translate(-170, -180)`}>
+          <ellipse cx="170" cy="180" rx="15" ry="17" fill="#FFFFFF" stroke="#18181C" strokeWidth="3.5" />
+          {/* Iris */}
+          <ellipse cx={170 + gaze.x * 0.5} cy={180 + gaze.y * 0.5} rx="11" ry="13" fill="url(#irisGrad)" />
+          {/* Pupil */}
+          <circle cx={170 + gaze.x * 0.5} cy={180 + gaze.y * 0.5} r="6" fill="#0A0E1A" />
+          {/* Dual Catchlights */}
+          <circle cx={166 + gaze.x * 0.5} cy={174 + gaze.y * 0.5} r="4.2" fill="#FFFFFF" />
+          <circle cx={173 + gaze.x * 0.5} cy={185 + gaze.y * 0.5} r="2.0" fill="#FFFFFF" />
+        </g>
+        {/* Right Eye */}
+        <g transform={`translate(230, 180) scale(1, ${eyeScaleY}) translate(-230, -180)`}>
+          <ellipse cx="230" cy="180" rx="15" ry="17" fill="#FFFFFF" stroke="#18181C" strokeWidth="3.5" />
+          {/* Iris */}
+          <ellipse cx={230 + gaze.x * 0.5} cy={180 + gaze.y * 0.5} rx="11" ry="13" fill="url(#irisGrad)" />
+          {/* Pupil */}
+          <circle cx={230 + gaze.x * 0.5} cy={180 + gaze.y * 0.5} r="6" fill="#0A0E1A" />
+          {/* Dual Catchlights */}
+          <circle cx={226 + gaze.x * 0.5} cy={174 + gaze.y * 0.5} r="4.2" fill="#FFFFFF" />
+          <circle cx={233 + gaze.x * 0.5} cy={185 + gaze.y * 0.5} r="2.0" fill="#FFFFFF" />
+        </g>
+        {/* Eyebrows */}
+        <path d="M 152 156 Q 169 148 186 156" stroke="#18181C" strokeWidth="5" fill="none" strokeLinecap="round" />
+        <path d="M 214 156 Q 231 148 248 156" stroke="#18181C" strokeWidth="5" fill="none" strokeLinecap="round" />
+      </>
+    );
   };
 
   const renderMouth = () => {
     if (!speaking || resolvedShape === 'closed') {
-      if (expression === 'shock') {
+      if (isShock) {
         return (
-          <ellipse cx="200" cy="218" rx="8" ry="10" fill="#7F1D1D" stroke="#18181B" strokeWidth="4" />
+          <ellipse cx="200" cy="225" rx="9" ry="14" fill="#3B070C" stroke="#18181C" strokeWidth="4" />
         );
       }
       if (expression === 'smug') {
         return (
-          <path d="M 185 216 Q 202 222 218 210" stroke="#18181B" strokeWidth="4.5" fill="none" strokeLinecap="round" />
+          <path d="M 185 222 Q 202 228 218 216" stroke="#18181C" strokeWidth="4.5" fill="none" strokeLinecap="round" />
         );
       }
-      if (expression === 'thinking' || expression === 'squint' || expression === 'tense') {
+      if (expression === 'thinking') {
         return (
-          <path d="M 188 217 Q 200 214 212 218" stroke="#18181B" strokeWidth="4.5" fill="none" strokeLinecap="round" />
+          <path d="M 188 223 Q 200 220 212 224" stroke="#18181C" strokeWidth="4.5" fill="none" strokeLinecap="round" />
         );
       }
+      // Cute happy smile
       return (
-        <path d="M 184 213 Q 200 225 216 213" stroke="#18181B" strokeWidth="4.5" fill="none" strokeLinecap="round" />
+        <path d="M 184 218 Q 200 230 216 218" stroke="#18181C" strokeWidth="4.5" fill="none" strokeLinecap="round" />
       );
     }
 
-    const mouthScaleY = acousticOpen !== undefined ? 0.55 + acousticOpen * 0.65 : 1;
+    const mouthScaleY = 0.55 + acousticOpen * 0.75;
 
     switch (resolvedShape) {
       case 'open_o':
         return (
-          <g transform={`translate(200, 218) scale(1, ${mouthScaleY}) translate(-200, -218)`}>
-            <ellipse cx="200" cy="218" rx="11" ry="14" fill="#7F1D1D" stroke="#18181B" strokeWidth="4" />
+          <g transform={`translate(200, 224) scale(1, ${mouthScaleY}) translate(-200, -224)`}>
+            <ellipse cx="200" cy="224" rx="12" ry="15" fill="#3B070C" stroke="#18181C" strokeWidth="4" />
+            <circle cx="200" cy="232" r="6" fill="#F43F5E" />
           </g>
         );
       case 'narrow_u':
         return (
-          <g transform={`translate(200, 218) scale(1, ${mouthScaleY}) translate(-200, -218)`}>
-            <ellipse cx="200" cy="218" rx="8" ry="9" fill="#7F1D1D" stroke="#18181B" strokeWidth="4" />
+          <g transform={`translate(200, 224) scale(1, ${mouthScaleY}) translate(-200, -224)`}>
+            <ellipse cx="200" cy="224" rx="8" ry="10" fill="#3B070C" stroke="#18181C" strokeWidth="4" />
           </g>
         );
       case 'wide_e':
         return (
-          <g transform={`translate(200, 216) scale(1, ${mouthScaleY}) translate(-200, -216)`}>
-            <path d="M 180 212 Q 200 210 220 212 Q 216 226 200 226 Q 184 226 180 212 Z" fill="#7F1D1D" stroke="#18181B" strokeWidth="4" />
-            <path d="M 184 214 L 216 214" stroke="#FFFFFF" strokeWidth="3.5" strokeLinecap="round" />
+          <g transform={`translate(200, 222) scale(1, ${mouthScaleY}) translate(-200, -222)`}>
+            <path d="M 180 216 Q 200 214 220 216 Q 216 230 200 230 Q 184 230 180 216 Z" fill="#3B070C" stroke="#18181C" strokeWidth="4" />
+            <path d="M 184 218 L 216 218" stroke="#FFFFFF" strokeWidth="3.5" strokeLinecap="round" />
           </g>
         );
       case 'open_a':
       default:
         return (
-          <g transform={`translate(200, 216) scale(1, ${mouthScaleY}) translate(-200, -216)`}>
-            <path d="M 182 210 Q 200 206 218 210 Q 222 234 200 234 Q 178 234 182 210 Z" fill="#7F1D1D" stroke="#18181B" strokeWidth="4" />
-            <path d="M 186 211 L 214 211" stroke="#FFFFFF" strokeWidth="4" strokeLinecap="round" />
-            <ellipse cx="200" cy="227" rx="10" ry="5" fill="#EF4444" />
+          <g transform={`translate(200, 222) scale(1, ${mouthScaleY}) translate(-200, -222)`}>
+            <path d="M 182 214 Q 200 210 218 214 Q 222 238 200 238 Q 178 238 182 214 Z" fill="#3B070C" stroke="#18181C" strokeWidth="4" />
+            <path d="M 186 215 L 214 215" stroke="#FFFFFF" strokeWidth="4" strokeLinecap="round" />
+            <ellipse cx="200" cy="231" rx="10" ry="5.5" fill="#F43F5E" />
           </g>
         );
     }
@@ -289,62 +280,191 @@ export const AlphaCharacter: React.FC<AlphaCharacterProps> = ({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        filter: rimColor ? `drop-shadow(0 0 22px ${rimColor})` : undefined,
+        filter: rimColor ? `drop-shadow(0 0 24px ${rimColor})` : undefined,
       }}
     >
       <svg viewBox="0 0 400 480" width="100%" height="100%" style={{overflow: 'visible'}}>
-        <g transform={`translate(200, 430) scale(${breathScaleX}, ${breathScaleY}) translate(-200, -430) translate(0, ${breathY})`}>
-          {/* Left Arm */}
+        <defs>
+          {/* Volumetric 2.5D Shading Gradients */}
+          <radialGradient id="skinGrad" cx="45%" cy="38%" r="65%">
+            <stop offset="0%" stopColor={isShock ? '#FFF0E8' : '#FFE2D1'} />
+            <stop offset="70%" stopColor={isShock ? '#FED7AA' : '#FFD2A5'} />
+            <stop offset="100%" stopColor={isShock ? '#E2D5CC' : '#E8B688'} />
+          </radialGradient>
+
+          <linearGradient id="beanieDome" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#3A3A44" />
+            <stop offset="50%" stopColor="#25252C" />
+            <stop offset="100%" stopColor="#141418" />
+          </linearGradient>
+
+          <linearGradient id="beanieBrim" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#454552" />
+            <stop offset="40%" stopColor="#2B2B34" />
+            <stop offset="100%" stopColor="#1A1A20" />
+          </linearGradient>
+
+          <linearGradient id="hoodieMain" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor={hoodieColor === '#DC2626' ? '#EF4444' : '#6366F1'} />
+            <stop offset="45%" stopColor={hoodieColor} />
+            <stop offset="100%" stopColor={hoodieColor === '#DC2626' ? '#991B1B' : '#3730A3'} />
+          </linearGradient>
+
+          <linearGradient id="hoodiePocket" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor={hoodieColor === '#DC2626' ? '#B91C1C' : '#4F46E5'} />
+            <stop offset="100%" stopColor={hoodieColor === '#DC2626' ? '#7F1D1D' : '#312E81'} />
+          </linearGradient>
+
+          <linearGradient id="metalAglet" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#94A3B8" />
+            <stop offset="40%" stopColor="#F8FAFC" />
+            <stop offset="100%" stopColor="#64748B" />
+          </linearGradient>
+
+          <radialGradient id="irisGrad" cx="45%" cy="35%" r="65%">
+            <stop offset="0%" stopColor="#60A5FA" />
+            <stop offset="40%" stopColor="#3B82F6" />
+            <stop offset="100%" stopColor="#1D4ED8" />
+          </radialGradient>
+        </defs>
+
+        <g transform={`translate(200, 440) scale(${breathScaleX}, ${breathScaleY}) translate(-200, -440) translate(0, ${breathY})`}>
+          {/* Left Arm (Viewer's Left) */}
           <g transform={getLeftArmTransform()}>
-            <rect x="105" y="270" width="34" height="105" rx="17" fill="#B91C1C" stroke="#18181B" strokeWidth="5" />
-            <circle cx="122" cy="380" r="16" fill="#FDE68A" stroke="#18181B" strokeWidth="5" />
+            <rect x="96" y="272" width="38" height="115" rx="19" fill="url(#hoodieMain)" stroke="#18181C" strokeWidth="5" />
+            <circle cx="115" cy="392" r="17" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="5" />
           </g>
 
-          {/* Right Arm */}
+          {/* Right Arm (Viewer's Right) */}
           <g transform={getRightArmTransform()}>
-            <rect x="261" y="270" width="34" height="105" rx="17" fill="#B91C1C" stroke="#18181B" strokeWidth="5" />
-            <circle cx="278" cy="380" r="16" fill="#FDE68A" stroke="#18181B" strokeWidth="5" />
+            <rect x="266" y="272" width="38" height="115" rx="19" fill="url(#hoodieMain)" stroke="#18181C" strokeWidth="5" />
+            <circle cx="285" cy="392" r="17" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="5" />
           </g>
 
-          {/* Torso / Hoodie */}
+          {/* Puffy Hood behind neck */}
           <path
-            d="M 125 265 Q 200 245 275 265 L 295 430 Q 200 445 105 430 Z"
-            fill="#DC2626"
-            stroke="#18181B"
+            d="M 132 255 Q 200 236 268 255 Q 284 278 268 290 Q 200 278 132 290 Q 116 278 132 255 Z"
+            fill="url(#hoodiePocket)"
+            stroke="#18181C"
+            strokeWidth="5"
+          />
+
+          {/* Torso / Hoodie Body */}
+          <path
+            d="M 125 268 Q 200 248 275 268 L 298 438 Q 200 452 102 438 Z"
+            fill="url(#hoodieMain)"
+            stroke="#18181C"
             strokeWidth="6"
             strokeLinejoin="round"
           />
-          <path d="M 185 265 L 185 335 M 215 265 L 215 335" stroke="#FAFAFA" strokeWidth="5" strokeLinecap="round" />
-          <text x="200" y="375" textAnchor="middle" fill="#FAFAFA" fontFamily="sans-serif" fontWeight="900" fontSize="34" opacity="0.9">
-            A
-          </text>
+
+          {/* Kangaroo Pocket */}
+          <path
+            d="M 142 355 L 258 355 L 268 424 Q 200 435 132 424 Z"
+            fill="url(#hoodiePocket)"
+            stroke="#18181C"
+            strokeWidth="4.5"
+            strokeLinejoin="round"
+          />
+          {/* Pocket side entry slits */}
+          <path d="M 144 362 L 150 414" stroke="#18181C" strokeWidth="3.5" strokeLinecap="round" />
+          <path d="M 256 362 L 250 414" stroke="#18181C" strokeWidth="3.5" strokeLinecap="round" />
+
+          {/* Drawstring Cords & Metallic Aglets */}
+          <g transform={`rotate(${stringSwingLeft} 175 272)`}>
+            <path d="M 175 270 Q 170 305 174 340" stroke="#F8FAFC" strokeWidth="4.5" strokeLinecap="round" fill="none" />
+            <rect x="171" y="340" width="6" height="15" rx="3" fill="url(#metalAglet)" stroke="#18181C" strokeWidth="1.5" />
+          </g>
+          <g transform={`rotate(${stringSwingRight} 225 272)`}>
+            <path d="M 225 270 Q 230 305 226 340" stroke="#F8FAFC" strokeWidth="4.5" strokeLinecap="round" fill="none" />
+            <rect x="223" y="340" width="6" height="15" rx="3" fill="url(#metalAglet)" stroke="#18181C" strokeWidth="1.5" />
+          </g>
 
           {/* Neck */}
-          <rect x="182" y="235" width="36" height="36" rx="10" fill="#FDE68A" stroke="#18181B" strokeWidth="5" />
+          <rect x="182" y="238" width="36" height="34" rx="10" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="5" />
 
-          {/* Head */}
-          <g transform={`rotate(${headTilt} 200 180)`}>
-            <path d="M 118 165 Q 110 85 200 82 Q 290 85 282 165 Z" fill="#18181B" />
-            <circle cx="122" cy="182" r="14" fill="#FDE68A" stroke="#18181B" strokeWidth="5" />
-            <circle cx="278" cy="182" r="14" fill="#FDE68A" stroke="#18181B" strokeWidth="5" />
-            <rect x="128" y="105" width="144" height="140" rx="64" fill="#FEF3C7" stroke="#18181B" strokeWidth="6" />
-            <path
-              d="M 124 148 Q 130 92 200 90 Q 270 92 276 148 Q 252 122 232 138 Q 205 112 182 136 Q 152 118 124 148 Z"
-              fill="#18181B"
-              stroke="#18181B"
-              strokeWidth="4"
-              strokeLinejoin="round"
-            />
-            <path d="M 192 98 Q 212 105 224 128" stroke="#EF4444" strokeWidth="6" fill="none" strokeLinecap="round" />
-            {renderEyes()}
-            {expression === 'shock' || expression === 'tense' ? (
-              <path d="M 136 125 L 142 145 M 145 128 L 150 142" stroke="#60A5FA" strokeWidth="3" strokeLinecap="round" />
-            ) : (
+          {/* Head & Face Group */}
+          <g transform={`rotate(${headTilt} 200 185)`}>
+            {/* Ears */}
+            <ellipse cx="118" cy="186" rx="14" ry="18" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="4.5" />
+            <ellipse cx="282" cy="186" rx="14" ry="18" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="4.5" />
+
+            {/* Base Spherical Head */}
+            <rect x="122" y="108" width="156" height="146" rx="68" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="6" />
+
+            {/* Blush Cheeks */}
+            {!isShock && (
               <>
-                <ellipse cx="148" cy="196" rx="10" ry="5" fill="#F87171" opacity="0.45" />
-                <ellipse cx="252" cy="196" rx="10" ry="5" fill="#F87171" opacity="0.45" />
+                <circle cx="148" cy="204" r="12" fill="#F472B6" opacity="0.45" />
+                <circle cx="252" cy="204" r="12" fill="#F472B6" opacity="0.45" />
               </>
             )}
+
+            {/* Beanie Dome (covers top & back) */}
+            <path
+              d="M 116 156 Q 108 72 200 68 Q 292 72 284 156 Z"
+              fill="url(#beanieDome)"
+              stroke="#141418"
+              strokeWidth="5"
+            />
+
+            {/* Ribbed Beanie Brim (thick band hugging forehead line) */}
+            <rect
+              x="112"
+              y="142"
+              width="176"
+              height="30"
+              rx="15"
+              fill="url(#beanieBrim)"
+              stroke="#111116"
+              strokeWidth="4.5"
+            />
+            {/* Subtle ribbing textures */}
+            <path
+              d="M 145 146 L 145 168 M 172 144 L 172 170 M 200 144 L 200 170 M 228 144 L 228 170 M 255 146 L 255 168"
+              stroke="#111116"
+              strokeWidth="2.5"
+              opacity="0.5"
+            />
+
+            {/* 4 Stylized Hair Bangs Tufting Under the Brim */}
+            {/* Lock 1 (far left) */}
+            <path
+              d="M 134 165 Q 140 185 148 180 Q 146 166 142 165 Z"
+              fill="#18181C"
+              stroke="#18181C"
+              strokeWidth="3"
+              strokeLinejoin="round"
+            />
+            {/* Lock 2 (mid left) */}
+            <path
+              d="M 160 168 Q 174 195 186 182 Q 178 168 172 166 Z"
+              fill="#18181C"
+              stroke="#18181C"
+              strokeWidth="3.5"
+              strokeLinejoin="round"
+            />
+            {/* Lock 3 (mid right) */}
+            <path
+              d="M 188 167 Q 202 196 216 184 Q 208 168 200 166 Z"
+              fill="#18181C"
+              stroke="#18181C"
+              strokeWidth="3.5"
+              strokeLinejoin="round"
+            />
+            {/* Lock 4 (far right) */}
+            <path
+              d="M 230 166 Q 242 186 250 178 Q 246 166 238 165 Z"
+              fill="#18181C"
+              stroke="#18181C"
+              strokeWidth="3"
+              strokeLinejoin="round"
+            />
+
+            {/* Eyes */}
+            {renderEyes()}
+
+            {/* Mouth */}
             {renderMouth()}
           </g>
         </g>
