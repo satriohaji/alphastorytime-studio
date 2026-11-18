@@ -94,6 +94,7 @@ console.log(`[+] Generated: src/shots.ts (4 shots, 2585 frames)`);
 const scenesContent = `import React from 'react';
 import {useCurrentFrame} from 'remotion';
 import {AlphaCharacter} from '@shared/AlphaCharacter';
+import {AlphaCharacter3D} from '@shared/AlphaCharacter3D';
 import {
   AliveCharacterRig,
   findActiveWord,
@@ -105,6 +106,11 @@ import {
 import {getMouthOpenness} from './lipSyncData';
 import type {SceneId} from './shots';
 import wordTimestamps from './word_timestamps.json';
+
+// PILIHAN MODE KARAKTER:
+// '3d_webgl'     : 3D Mascot Rig WebGL / Three.js asli dari archive (PBR Shader, Rim Lighting, 3D Poseable)
+// '2.5d_kokbisa' : 2.5D Kok Bisa Style (Shading Volumetrik Gradasi, Ringan & Super Cepat)
+export const CHARACTER_MODE: '3d_webgl' | '2.5d_kokbisa' = '3d_webgl';
 
 function StoryVisualPlate({
   title,
@@ -182,26 +188,40 @@ export const SceneRenderer: React.FC<{
           detail="Ketinggian 2800m • Kabut tebal turun mendadak & riuh pasar gaib"
           accent="#EF4444"
         />
-        <AliveCharacterRig
-          mouthOpen={mouthOpen}
-          enterFrom="bottom"
-          style={{
-            position: 'absolute',
-            bottom: 370,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            zIndex: 15,
-          }}
-        >
-          <AlphaCharacter
-            scale={1.75}
-            expression="tense"
-            bodyPose="gesture_left"
+        {CHARACTER_MODE === '3d_webgl' ? (
+          <div style={{position: 'absolute', inset: 0, zIndex: 10, pointerEvents: 'none'}}>
+            <AlphaCharacter3D
+              expression="shock"
+              pose="idle"
+              mouthOpen={mouthOpen}
+              scale={1.22}
+              cameraPitch={0.04}
+              showPedestal={false}
+              rimLightColor={0xef4444}
+            />
+          </div>
+        ) : (
+          <AliveCharacterRig
             mouthOpen={mouthOpen}
-            activeWord={activeWord}
-            rimColor="#EF4444"
-          />
-        </AliveCharacterRig>
+            enterFrom="bottom"
+            style={{
+              position: 'absolute',
+              bottom: 370,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 15,
+            }}
+          >
+            <AlphaCharacter
+              scale={1.75}
+              expression="tense"
+              bodyPose="gesture_left"
+              mouthOpen={mouthOpen}
+              activeWord={activeWord}
+              rimColor="#EF4444"
+            />
+          </AliveCharacterRig>
+        )}
       </SpatialCameraRig>
     );
   }
@@ -227,26 +247,41 @@ export const SceneRenderer: React.FC<{
           detail="Cahaya senter meredup • Jalur setapak berganti ilalang asing"
           accent="#06B6D4"
         />
-        <AliveCharacterRig
-          mouthOpen={mouthOpen}
-          enterFrom="bottom"
-          style={{
-            position: 'absolute',
-            bottom: 370,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            zIndex: 15,
-          }}
-        >
-          <AlphaCharacter
-            scale={1.75}
-            expression="shock"
-            bodyPose="gesture_right"
+        {CHARACTER_MODE === '3d_webgl' ? (
+          <div style={{position: 'absolute', inset: 0, zIndex: 10, pointerEvents: 'none'}}>
+            <AlphaCharacter3D
+              expression="shock"
+              pose="idle"
+              mouthOpen={mouthOpen}
+              scale={1.22}
+              cameraAngle={-0.15}
+              cameraPitch={0.05}
+              showPedestal={false}
+              rimLightColor={0x38bdf8}
+            />
+          </div>
+        ) : (
+          <AliveCharacterRig
             mouthOpen={mouthOpen}
-            activeWord={activeWord}
-            rimColor="#06B6D4"
-          />
-        </AliveCharacterRig>
+            enterFrom="bottom"
+            style={{
+              position: 'absolute',
+              bottom: 370,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 15,
+            }}
+          >
+            <AlphaCharacter
+              scale={1.75}
+              expression="shock"
+              bodyPose="gesture_right"
+              mouthOpen={mouthOpen}
+              activeWord={activeWord}
+              rimColor="#06B6D4"
+            />
+          </AliveCharacterRig>
+        )}
       </SpatialCameraRig>
     );
   }
@@ -265,26 +300,41 @@ export const SceneRenderer: React.FC<{
         detail="Riuh tawar-menawar terdengar jelas di tengah kabut pekat"
         accent="#A855F7"
       />
-      <AliveCharacterRig
-        mouthOpen={mouthOpen}
-        enterFrom="bottom"
-        style={{
-          position: 'absolute',
-          bottom: 370,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 15,
-        }}
-      >
-        <AlphaCharacter
-          scale={1.75}
-          expression="tense"
-          bodyPose="think"
+      {CHARACTER_MODE === '3d_webgl' ? (
+        <div style={{position: 'absolute', inset: 0, zIndex: 10, pointerEvents: 'none'}}>
+          <AlphaCharacter3D
+            expression="shock"
+            pose="idle"
+            mouthOpen={mouthOpen}
+            scale={1.22}
+            cameraAngle={0.12}
+            cameraPitch={0.04}
+            showPedestal={false}
+            rimLightColor={0xa855f7}
+          />
+        </div>
+      ) : (
+        <AliveCharacterRig
           mouthOpen={mouthOpen}
-          activeWord={activeWord}
-          rimColor="#A855F7"
-        />
-      </AliveCharacterRig>
+          enterFrom="bottom"
+          style={{
+            position: 'absolute',
+            bottom: 370,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 15,
+          }}
+        >
+          <AlphaCharacter
+            scale={1.75}
+            expression="tense"
+            bodyPose="think"
+            mouthOpen={mouthOpen}
+            activeWord={activeWord}
+            rimColor="#A855F7"
+          />
+        </AliveCharacterRig>
+      )}
     </SpatialCameraRig>
   );
 };
