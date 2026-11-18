@@ -68,13 +68,25 @@ if [ "$MODE" = "--stop" ]; then
   exit 0
 fi
 
-# 3. ASYNCHRONOUS BACKGROUND LAUNCHER (--bg / --async)
-# Menghindari timeout 180s di Telegram dengan merilis kontrol segera
-if [ "$MODE" = "--bg" ] || [ "$MODE" = "--async" ]; then
-  SUBMODE="${1:?Submode wajib diisi (--new, --cont, --conv)}"
-  shift
-  PROMPT="${1:?Prompt wajib diisi}"
-  shift || true
+# 3. ASYNCHRONOUS BACKGROUND LAUNCHER (Default untuk --bg, --async, --new, --cont, --conv)
+# Menghindari timeout 180s di Telegram dengan merilis kontrol segera ke terminal/bot
+if [ "$MODE" = "--bg" ] || [ "$MODE" = "--async" ] || [ "$MODE" = "--new" ] || [ "$MODE" = "--cont" ] || [ "$MODE" = "--conv" ]; then
+  if [ "$MODE" = "--bg" ] || [ "$MODE" = "--async" ]; then
+    SUBMODE="${1:?Submode wajib diisi (--new, --cont, --conv)}"
+    shift
+  else
+    SUBMODE="$MODE"
+  fi
+  
+  if [ "$SUBMODE" = "--conv" ]; then
+    CONV_ID="${1:?Conversation ID wajib diisi}"
+    shift
+    PROMPT="${1:?Prompt wajib diisi}"
+    shift || true
+  else
+    PROMPT="${1:?Prompt wajib diisi}"
+    shift || true
+  fi
 
   LOG_FILE="$REPO_ROOT/logs/agy_$(date +%Y%m%d_%H%M%S).log"
 
@@ -85,6 +97,8 @@ if [ "$MODE" = "--bg" ] || [ "$MODE" = "--async" ]; then
       agy $PERM_FLAG -p "$PROMPT" >> "$LOG_FILE" 2>&1 || true
     elif [ "$SUBMODE" = "--cont" ]; then
       agy $PERM_FLAG -c -p "$PROMPT" >> "$LOG_FILE" 2>&1 || true
+    elif [ "$SUBMODE" = "--conv" ]; then
+      agy $PERM_FLAG --conversation "$CONV_ID" -p "$PROMPT" >> "$LOG_FILE" 2>&1 || true
     fi
     echo "=== Produksi Selesai: $(date) ===" >> "$LOG_FILE"
 
@@ -106,30 +120,34 @@ if [ "$MODE" = "--bg" ] || [ "$MODE" = "--async" ]; then
   exit 0
 fi
 
-# 4. SYNCHRONOUS FALLBACK (Jika dijalankan manual dari terminal interaktif)
-LOG_FILE="$REPO_ROOT/logs/agy_$(date +%Y%m%d_%H%M%S).log"
+# 4. SYNCHRONOUS FALLBACK (Hanya jika secara eksplisit dipanggil dengan flag --sync)
+if [ "$MODE" = "--sync" ]; then
+  SUBMODE="${1:?Submode wajib diisi (--new, --cont, --conv)}"
+  shift
+  PROMPT="${1:?Prompt wajib diisi}"
+  LOG_FILE="$REPO_ROOT/logs/agy_$(date +%Y%m%d_%H%M%S).log"
 
-case "$MODE" in
-  --new)
-    PROMPT="${1:?Prompt wajib diisi}"
-    agy $PERM_FLAG -p "$PROMPT" | tee "$LOG_FILE"
-    ;;
-  --cont)
-    PROMPT="${1:?Prompt wajib diisi}"
-    agy $PERM_FLAG -c -p "$PROMPT" | tee "$LOG_FILE"
-    ;;
-  --conv)
-    CONV_ID="${1:?Conversation ID wajib diisi}"
-    shift
-    PROMPT="${1:?Prompt wajib diisi}"
-    agy $PERM_FLAG --conversation "$CONV_ID" -p "$PROMPT" | tee "$LOG_FILE"
-    ;;
-  *)
-    echo "Usage:"
-    echo "  bash vps/agy-run.sh --bg --new \"<prompt>\"   (Rekomendasi Telegram / Anti-Timeout)"
-    echo "  bash vps/agy-run.sh --bg --cont \"<balasan>\" (Rekomendasi Telegram / Anti-Timeout)"
-    echo "  bash vps/agy-run.sh --status"
-    echo "  bash vps/agy-run.sh --stop"
-    exit 1
-    ;;
-esac
+  case "$SUBMODE" in
+    --new)
+      agy $PERM_FLAG -p "$PROMPT" | tee "$LOG_FILE"
+      ;;
+    --cont)
+      agy $PERM_FLAG -c -p "$PROMPT" | tee "$LOG_FILE"
+      ;;
+    --conv)
+      CONV_ID="${1:?Conversation ID wajib diisi}"
+      shift
+      PROMPT="${1:?Prompt wajib diisi}"
+      agy $PERM_FLAG --conversation "$CONV_ID" -p "$PROMPT" | tee "$LOG_FILE"
+      ;;
+  esac
+  exit 0
+fi
+
+echo "Usage:"
+echo "  bash vps/agy-run.sh --new \"<prompt>\"   (Default Background / Anti-Timeout)"
+echo "  bash vps/agy-run.sh --cont \"<balasan>\" (Default Background / Anti-Timeout)"
+echo "  bash vps/agy-run.sh --status"
+echo "  bash vps/agy-run.sh --stop"
+echo "  bash vps/agy-run.sh --sync --new \"<prompt>\" (Synchronous / Interactive)"
+exit 1
