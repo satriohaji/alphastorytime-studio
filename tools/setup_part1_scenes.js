@@ -110,7 +110,7 @@ import wordTimestamps from './word_timestamps.json';
 // PILIHAN MODE KARAKTER:
 // '3d_webgl'     : 3D Mascot Rig WebGL / Three.js asli dari archive (PBR Shader, Rim Lighting, 3D Poseable)
 // '2.5d_kokbisa' : 2.5D Kok Bisa Style (Shading Volumetrik Gradasi, Ringan & Super Cepat)
-export const CHARACTER_MODE: '3d_webgl' | '2.5d_kokbisa' = '3d_webgl';
+export const CHARACTER_MODE: '3d_webgl' | '2.5d_kokbisa' = '2.5d_kokbisa';
 
 function StoryVisualPlate({
   title,
