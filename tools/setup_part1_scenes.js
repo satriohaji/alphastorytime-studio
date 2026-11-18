@@ -194,8 +194,8 @@ export const SceneRenderer: React.FC<{
               expression="shock"
               pose="idle"
               mouthOpen={mouthOpen}
-              scale={1.22}
-              cameraPitch={0.04}
+              scale={0.85}
+              cameraPitch={0.02}
               showPedestal={false}
               rimLightColor={0xef4444}
             />
@@ -253,9 +253,9 @@ export const SceneRenderer: React.FC<{
               expression="shock"
               pose="idle"
               mouthOpen={mouthOpen}
-              scale={1.22}
+              scale={0.85}
               cameraAngle={-0.15}
-              cameraPitch={0.05}
+              cameraPitch={0.03}
               showPedestal={false}
               rimLightColor={0x38bdf8}
             />
@@ -306,9 +306,9 @@ export const SceneRenderer: React.FC<{
             expression="shock"
             pose="idle"
             mouthOpen={mouthOpen}
-            scale={1.22}
+            scale={0.85}
             cameraAngle={0.12}
-            cameraPitch={0.04}
+            cameraPitch={0.03}
             showPedestal={false}
             rimLightColor={0xa855f7}
           />
