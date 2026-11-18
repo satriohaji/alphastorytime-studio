@@ -57,14 +57,24 @@ function parseArgs(args) {
     const arg = args[i];
     if (arg === '--comp' && i + 1 < args.length) {
       result.comp = args[++i];
+    } else if (arg.startsWith('--comp=')) {
+      result.comp = arg.slice(7);
     } else if (arg === '--out' && i + 1 < args.length) {
       result.out = args[++i];
+    } else if (arg.startsWith('--out=')) {
+      result.out = arg.slice(6);
     } else if (arg === '--frame' && i + 1 < args.length) {
       result.frame = parseInt(args[++i], 10);
+    } else if (arg.startsWith('--frame=')) {
+      result.frame = parseInt(arg.slice(8), 10);
     } else if (arg === '--crf' && i + 1 < args.length) {
       result.crf = parseInt(args[++i], 10);
+    } else if (arg.startsWith('--crf=')) {
+      result.crf = parseInt(arg.slice(6), 10);
     } else if (arg === '--concurrency' && i + 1 < args.length) {
       result.concurrency = args[++i];
+    } else if (arg.startsWith('--concurrency=')) {
+      result.concurrency = arg.slice(14);
     } else {
       result.extra.push(arg);
     }
