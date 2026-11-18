@@ -111,38 +111,289 @@ export const AlphaCharacter: React.FC<AlphaCharacterProps> = ({
   const stringSwingLeft = Math.sin(t * 3.5) * 5.0;
   const stringSwingRight = Math.cos(t * 3.2) * 5.0;
 
-  const getLeftArmTransform = () => {
-    switch (bodyPose) {
-      case 'wave':
-        return `rotate(${-125 + Math.sin(t * 10) * 15} 125 285)`;
-      case 'shrug':
-        return 'rotate(-55 125 285)';
-      case 'gesture_left':
-        return `rotate(${-72 + Math.sin(t * 5) * 8} 125 285)`;
-      default:
-        if (isShock) {
-          return `rotate(${-128 + Math.sin(t * 14) * 4} 125 285)`;
-        }
-        return 'rotate(12 125 285)';
-    }
-  };
+  const renderArmsAndHands = () => {
+    if (isShock) {
+      // SHOCK / HORROR POSE: Both hands cupping cheeks (matching 3D model)
+      const tremble = Math.sin(t * 18) * 2;
+      return (
+        <g id="shock-arms">
+          {/* Left Sleeve raised to cheek */}
+          <path
+            d={`M 115 285 Q ${76 + tremble} 228 130 196`}
+            fill="none"
+            stroke="url(#hoodieMain)"
+            strokeWidth="38"
+            strokeLinecap="round"
+          />
+          <path
+            d={`M 115 285 Q ${76 + tremble} 228 130 196`}
+            fill="none"
+            stroke="#18181C"
+            strokeWidth="5"
+            strokeLinecap="round"
+          />
+          {/* Left Sleeve Cuff */}
+          <rect
+            x="116"
+            y="188"
+            width="28"
+            height="14"
+            rx="6"
+            transform={`rotate(-25 130 196)`}
+            fill="url(#hoodiePocket)"
+            stroke="#18181C"
+            strokeWidth="3.5"
+          />
+          {/* Left Hand cupping cheek */}
+          <g transform={`translate(${138 + tremble * 0.4}, 198) rotate(15)`}>
+            <ellipse cx="0" cy="0" rx="16" ry="14" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="4" />
+            <circle cx="10" cy="-4" r="5" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="3" />
+            <circle cx="9" cy="6" r="4.5" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="3" />
+          </g>
 
-  const getRightArmTransform = () => {
-    switch (bodyPose) {
-      case 'gesture_right':
-        return `rotate(${70 + Math.sin(t * 5) * 8} 275 285)`;
-      case 'point':
-        return 'rotate(85 275 285)';
-      case 'shrug':
-        return 'rotate(55 275 285)';
-      case 'think':
-        return 'rotate(115 275 285)';
-      default:
-        if (isShock) {
-          return `rotate(${128 + Math.cos(t * 14) * 4} 275 285)`;
-        }
-        return 'rotate(-12 275 285)';
+          {/* Right Sleeve raised to cheek */}
+          <path
+            d={`M 285 285 Q ${324 - tremble} 228 270 196`}
+            fill="none"
+            stroke="url(#hoodieMain)"
+            strokeWidth="38"
+            strokeLinecap="round"
+          />
+          <path
+            d={`M 285 285 Q ${324 - tremble} 228 270 196`}
+            fill="none"
+            stroke="#18181C"
+            strokeWidth="5"
+            strokeLinecap="round"
+          />
+          {/* Right Sleeve Cuff */}
+          <rect
+            x="256"
+            y="188"
+            width="28"
+            height="14"
+            rx="6"
+            transform={`rotate(25 270 196)`}
+            fill="url(#hoodiePocket)"
+            stroke="#18181C"
+            strokeWidth="3.5"
+          />
+          {/* Right Hand cupping cheek */}
+          <g transform={`translate(${262 - tremble * 0.4}, 198) rotate(-15)`}>
+            <ellipse cx="0" cy="0" rx="16" ry="14" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="4" />
+            <circle cx="-10" cy="-4" r="5" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="3" />
+            <circle cx="-9" cy="6" r="4.5" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="3" />
+          </g>
+        </g>
+      );
     }
+
+    if (bodyPose === 'gesture_left') {
+      const sway = Math.sin(t * 5) * 6;
+      return (
+        <g id="gesture-left-arms">
+          {/* Left Arm Gesturing Outward */}
+          <path
+            d={`M 115 278 Q 65 305 ${50 + sway} ${265 - sway}`}
+            fill="none"
+            stroke="url(#hoodieMain)"
+            strokeWidth="36"
+            strokeLinecap="round"
+          />
+          <path
+            d={`M 115 278 Q 65 305 ${50 + sway} ${265 - sway}`}
+            fill="none"
+            stroke="#18181C"
+            strokeWidth="5"
+            strokeLinecap="round"
+          />
+          {/* Left Cuff */}
+          <rect
+            x={38 + sway}
+            y={255 - sway}
+            width="26"
+            height="14"
+            rx="6"
+            transform={`rotate(20 ${50 + sway} ${265 - sway})`}
+            fill="url(#hoodiePocket)"
+            stroke="#18181C"
+            strokeWidth="3"
+          />
+          {/* Left Open Hand */}
+          <g transform={`translate(${45 + sway}, ${255 - sway}) rotate(25)`}>
+            <ellipse cx="0" cy="0" rx="15" ry="13" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="4" />
+            <circle cx="8" cy="-8" r="5" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="3" />
+            <circle cx="-8" cy="-6" r="4.5" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="3" />
+          </g>
+
+          {/* Right Arm Idle along Torso */}
+          <path
+            d="M 282 278 Q 305 340 292 395"
+            fill="none"
+            stroke="url(#hoodieMain)"
+            strokeWidth="36"
+            strokeLinecap="round"
+          />
+          <path
+            d="M 282 278 Q 305 340 292 395"
+            fill="none"
+            stroke="#18181C"
+            strokeWidth="5"
+            strokeLinecap="round"
+          />
+          <rect x="278" y="385" width="28" height="14" rx="6" fill="url(#hoodiePocket)" stroke="#18181C" strokeWidth="3" />
+          <circle cx="292" cy="408" r="16" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="4" />
+        </g>
+      );
+    }
+
+    if (bodyPose === 'gesture_right') {
+      const sway = Math.sin(t * 5) * 6;
+      return (
+        <g id="gesture-right-arms">
+          {/* Left Arm Idle along Torso */}
+          <path
+            d="M 118 278 Q 95 340 108 395"
+            fill="none"
+            stroke="url(#hoodieMain)"
+            strokeWidth="36"
+            strokeLinecap="round"
+          />
+          <path
+            d="M 118 278 Q 95 340 108 395"
+            fill="none"
+            stroke="#18181C"
+            strokeWidth="5"
+            strokeLinecap="round"
+          />
+          <rect x="94" y="385" width="28" height="14" rx="6" fill="url(#hoodiePocket)" stroke="#18181C" strokeWidth="3" />
+          <circle cx="108" cy="408" r="16" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="4" />
+
+          {/* Right Arm Gesturing Outward */}
+          <path
+            d={`M 285 278 Q 335 305 ${350 - sway} ${265 - sway}`}
+            fill="none"
+            stroke="url(#hoodieMain)"
+            strokeWidth="36"
+            strokeLinecap="round"
+          />
+          <path
+            d={`M 285 278 Q 335 305 ${350 - sway} ${265 - sway}`}
+            fill="none"
+            stroke="#18181C"
+            strokeWidth="5"
+            strokeLinecap="round"
+          />
+          {/* Right Cuff */}
+          <rect
+            x={336 - sway}
+            y={255 - sway}
+            width="26"
+            height="14"
+            rx="6"
+            transform={`rotate(-20 ${350 - sway} ${265 - sway})`}
+            fill="url(#hoodiePocket)"
+            stroke="#18181C"
+            strokeWidth="3"
+          />
+          {/* Right Open Hand */}
+          <g transform={`translate(${355 - sway}, ${255 - sway}) rotate(-25)`}>
+            <ellipse cx="0" cy="0" rx="15" ry="13" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="4" />
+            <circle cx="-8" cy="-8" r="5" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="3" />
+            <circle cx="8" cy="-6" r="4.5" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="3" />
+          </g>
+        </g>
+      );
+    }
+
+    if (bodyPose === 'wave') {
+      const waveAngle = Math.sin(t * 10) * 18;
+      return (
+        <g id="wave-arms">
+          {/* Left Arm Idle */}
+          <path
+            d="M 118 278 Q 95 340 108 395"
+            fill="none"
+            stroke="url(#hoodieMain)"
+            strokeWidth="36"
+            strokeLinecap="round"
+          />
+          <path
+            d="M 118 278 Q 95 340 108 395"
+            fill="none"
+            stroke="#18181C"
+            strokeWidth="5"
+            strokeLinecap="round"
+          />
+          <rect x="94" y="385" width="28" height="14" rx="6" fill="url(#hoodiePocket)" stroke="#18181C" strokeWidth="3" />
+          <circle cx="108" cy="408" r="16" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="4" />
+
+          {/* Right Arm Waving High */}
+          <path
+            d="M 285 278 Q 320 220 310 160"
+            fill="none"
+            stroke="url(#hoodieMain)"
+            strokeWidth="36"
+            strokeLinecap="round"
+          />
+          <path
+            d="M 285 278 Q 320 220 310 160"
+            fill="none"
+            stroke="#18181C"
+            strokeWidth="5"
+            strokeLinecap="round"
+          />
+          <rect x="296" y="152" width="28" height="14" rx="6" fill="url(#hoodiePocket)" stroke="#18181C" strokeWidth="3" />
+          <g transform={`translate(310, 145) rotate(${waveAngle})`}>
+            <circle cx="0" cy="0" r="17" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="4" />
+            <circle cx="-8" cy="-8" r="5" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="3" />
+            <circle cx="0" cy="-11" r="5" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="3" />
+            <circle cx="8" cy="-8" r="5" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="3" />
+          </g>
+        </g>
+      );
+    }
+
+    // Default: Natural Idle with hands clearly visible resting alongside torso
+    return (
+      <g id="idle-arms">
+        {/* Left Arm */}
+        <path
+          d="M 118 278 Q 88 340 98 400"
+          fill="none"
+          stroke="url(#hoodieMain)"
+          strokeWidth="36"
+          strokeLinecap="round"
+        />
+        <path
+          d="M 118 278 Q 88 340 98 400"
+          fill="none"
+          stroke="#18181C"
+          strokeWidth="5"
+          strokeLinecap="round"
+        />
+        <rect x="84" y="390" width="28" height="14" rx="6" fill="url(#hoodiePocket)" stroke="#18181C" strokeWidth="3" />
+        <circle cx="98" cy="414" r="16" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="4" />
+
+        {/* Right Arm */}
+        <path
+          d="M 282 278 Q 312 340 302 400"
+          fill="none"
+          stroke="url(#hoodieMain)"
+          strokeWidth="36"
+          strokeLinecap="round"
+        />
+        <path
+          d="M 282 278 Q 312 340 302 400"
+          fill="none"
+          stroke="#18181C"
+          strokeWidth="5"
+          strokeLinecap="round"
+        />
+        <rect x="288" y="390" width="28" height="14" rx="6" fill="url(#hoodiePocket)" stroke="#18181C" strokeWidth="3" />
+        <circle cx="302" cy="414" r="16" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="4" />
+      </g>
+    );
   };
 
   const renderEyes = () => {
@@ -329,18 +580,6 @@ export const AlphaCharacter: React.FC<AlphaCharacterProps> = ({
         </defs>
 
         <g transform={`translate(200, 440) scale(${breathScaleX}, ${breathScaleY}) translate(-200, -440) translate(0, ${breathY})`}>
-          {/* Left Arm (Viewer's Left) */}
-          <g transform={getLeftArmTransform()}>
-            <rect x="96" y="272" width="38" height="115" rx="19" fill="url(#hoodieMain)" stroke="#18181C" strokeWidth="5" />
-            <circle cx="115" cy="392" r="17" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="5" />
-          </g>
-
-          {/* Right Arm (Viewer's Right) */}
-          <g transform={getRightArmTransform()}>
-            <rect x="266" y="272" width="38" height="115" rx="19" fill="url(#hoodieMain)" stroke="#18181C" strokeWidth="5" />
-            <circle cx="285" cy="392" r="17" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="5" />
-          </g>
-
           {/* Puffy Hood behind neck */}
           <path
             d="M 132 255 Q 200 236 268 255 Q 284 278 268 290 Q 200 278 132 290 Q 116 278 132 255 Z"
@@ -467,6 +706,9 @@ export const AlphaCharacter: React.FC<AlphaCharacterProps> = ({
             {/* Mouth */}
             {renderMouth()}
           </g>
+
+          {/* Expressive Arms & Hands in front */}
+          {renderArmsAndHands()}
         </g>
       </svg>
     </div>
