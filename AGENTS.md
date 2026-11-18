@@ -14,9 +14,11 @@ Dokumen aturan ini wajib dipatuhi oleh seluruh AI Agent yang beroperasi di works
 - **Nama Panggilan:** Alpha (`alphastorytimee`)
 - **Konsep Acara:** Alpha adalah narrator/storyteller di dalam sebuah ruangan studio yang bercerita langsung kepada penonton, didukung **efek visual naratif, properti/ilustrasi cerita, dan transisi scene dinamis** yang menggambarkan jalannya cerita agar hidup dan imersif.
 - **Genre Cerita:** Horor / Urban Legend, Kisah Nyata / Sejarah / Misteri, dan Kisah Hiburan / Plot Twist.
-- **Karakter Visual (`@shared/AlphaCharacter`):** Hoodie merah ikonik dengan emblem huruf **"A"**, ekspresi (`happy`, `thinking`, `shock`, `squint`, `smug`), pose tangan (`wave`, `gesture_right`, `gesture_left`, `point`, `shrug`, `think`), kedipan mata otomatis, dan lip-sync akustik organik.
+- **Karakter Visual Paten (`@shared/AlphaCharacter`):** Maskot 2.5D "Kok Bisa" Volumetric Style bervolume 3D: kupluk / beanie hitam ribbed tebal, 4 helai poni rambut stylish, wajah bulat chibi dengan gradasi volumetrik halus, mata anime berbinar dengan 2 catchlights glossy, pipi blush, hoodie saku kanguru dengan drawstrings putih & aglet logam perak.
+- **Pose Tangan & Lengan Ekspresif:** Pose horor/shock terangkat memegang pipi (*Home Alone*), gesture tangan menunjuk scene plate (`gesture_left`, `gesture_right`), lambaian tangan (`wave`), berpikir (`think`), dan santai (`idle`).
+- **Rossark Motion Engine:** Pernapasan dada volume preservation, kedipan mata asimetris, tatapan bola mata dinamis, dan lip-sync viseme bibir karaoke organik mengikuti audio TTS.
 - **Karakter Suara Paten (`tools/gemini_voices.json`):**
-  - Voice ID: `voice_w6twpenhmuqf` (Model: `gemini-3.8-flash-tts`).
+  - Voice ID: `voice_onwkczqs6uoj` (Model: `gemini-3.8-flash-tts` via Gemini Voice Design).
   - **Wajib Konsisten:** Seluruh part dan episode wajib menggunakan `voice_id` `voice_w6twpenhmuqf`. Nuansa emosi diubah lewat parameter `style` (misal tegang/horor, hangat/kisah nyata, ceria/hiburan), bukan mengganti `voice_id`.
 
 ---
