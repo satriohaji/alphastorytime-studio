@@ -94,9 +94,9 @@ export const SceneRenderer: React.FC<{
           }}
         >
           <AlphaCharacter
-            scale={1.55}
-            expression="happy"
-            bodyPose="wave"
+            scale={1.75}
+            expression="tense"
+            bodyPose="gesture_left"
             mouthOpen={mouthOpen}
             activeWord={activeWord}
             rimColor="rgba(239, 68, 68, 0.45)"
@@ -129,18 +129,19 @@ export const SceneRenderer: React.FC<{
         />
         <AliveCharacterRig
           mouthOpen={mouthOpen}
-          enterFrom="left"
+          enterFrom="bottom"
           style={{
             position: 'absolute',
-            left: 80,
+            left: '50%',
             bottom: 370,
+            transform: 'translateX(-50%)',
             zIndex: 15,
           }}
         >
           <AlphaCharacter
-            scale={1.38}
+            scale={1.75}
             expression="tense"
-            bodyPose="point"
+            bodyPose="think"
             mouthOpen={mouthOpen}
             activeWord={activeWord}
             rimColor="rgba(56, 189, 248, 0.4)"
@@ -169,8 +170,8 @@ export const SceneRenderer: React.FC<{
         }}
       >
         <AlphaCharacter
-          scale={1.55}
-          expression="shock"
+          scale={1.75}
+          expression="tense"
           bodyPose="gesture_right"
           mouthOpen={mouthOpen}
           activeWord={activeWord}

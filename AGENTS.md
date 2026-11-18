@@ -19,7 +19,15 @@ Dokumen aturan ini wajib dipatuhi oleh seluruh AI Agent yang beroperasi di works
 - **Rossark Motion Engine:** Pernapasan dada volume preservation, kedipan mata asimetris, tatapan bola mata dinamis, dan lip-sync viseme bibir karaoke organik mengikuti audio TTS.
 - **Karakter Suara Paten (`tools/gemini_voices.json`):**
   - Voice ID: `voice_onwkczqs6uoj` (Model: `gemini-3.8-flash-tts` via Gemini Voice Design).
-  - **Wajib Konsisten:** Seluruh part dan episode wajib menggunakan `voice_id` `voice_w6twpenhmuqf`. Nuansa emosi diubah lewat parameter `style` (misal tegang/horor, hangat/kisah nyata, ceria/hiburan), bukan mengganti `voice_id`.
+  - **Wajib Konsisten:** Seluruh part dan episode wajib menggunakan `voice_id` `voice_onwkczqs6uoj`. Nuansa emosi diubah lewat parameter `style` (misal tegang/horor, hangat/kisah nyata, ceria/hiburan), bukan mengganti `voice_id`.
+- **Aturan Pose Tangan & Ekspresi Paten:**
+  - `expression` (`tense`, `shock`, `happy`, `thinking`, `smug`) dan `bodyPose` (`gesture_left`, `gesture_right`, `think`, `idle`, `shock`) telah didecouple secara independen.
+  - Untuk narasi misteri/horor, gunakan `expression="tense"` dipadukan dengan pose bercerita:
+    - `bodyPose="gesture_left"` / `"gesture_right"` saat mengarahkan perhatian penonton ke visual plate / ilustrasi.
+    - `bodyPose="think"` (tangan di bawah dagu) saat menceritakan misteri, keanehan, atau rasa penasaran.
+    - `bodyPose="idle"` (tangan santai di pinggang dengan pernapasan Rossark) saat jeda tenang.
+    - **DILARANG** mengunci pose `bodyPose="shock"` (tangan pegang pipi) sepanjang scene. Pose ini HANYA boleh dipicu singkat pada momen jumpscare, suara gaib, atau klimaks kejutan (3–6 detik).
+  - **Ukuran Karakter:** Gunakan `scale={1.75}` agar karakter Alpha memiliki proporsi maskot yang pas dan dominan di atas lantai platform studio.
 
 ---
 
@@ -60,7 +68,7 @@ Setiap tahap **WAJIB** memberikan ringkasan hasil dan memperoleh persetujuan (**
 - Jalankan untuk tiap part:
   1. `python tools/generate_gemini_tts.py "<part-dir>/script/tts_script.json" "<part-dir>/audio/<nama_file>.mp3"`
   2. Cek durasi MP3 (`45s <= durasi <= 120s`). Copy master VO ke `<part-dir>/public/audio/vo.mp3`.
-  3. `python tools/extract_timestamps.py "<part-dir>/audio/<nama_file>.mp3" "<part-dir>/audio/word_timestamps.json" "<part-dir>/script/timestamps.md"`
+  3. `python tools/extract_timestamps.py "<part-dir>/audio/<nama_file>.mp3" "<part-dir>/audio/word_timestamps.json" "<part-dir>/script/timestamps.md" --script-json "<part-dir>/script/tts_script.json"` (Wajib sertakan `--script-json` agar ejaan nama tempat, angka, dan istilah daerah 100% akurat tanpa salah dengar Whisper).
   4. `python tools/generate_lipsync.py "<part-dir>/audio/<nama_file>.mp3" "<part-dir>/audio/word_timestamps.json" "<part-dir>/src/lipSyncData.ts" "<part-dir>/audio/speaker_turns.json"`
 - Salin `word_timestamps.json` ke `<part-dir>/src/word_timestamps.json`.
 - **ACC Gate 3:** Laporkan durasi aktual tiap part, tabel shot/timestamp, dan konfirmasi lip-sync ke user.
