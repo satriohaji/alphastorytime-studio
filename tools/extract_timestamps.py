@@ -27,7 +27,7 @@ def sec_to_ts(sec: float) -> str:
     return f"{hrs:02d}:{mins:02d}:{secs:02d}.{millis:03d}"
 
 
-def extract_timestamps(audio_path: str, output_json_path: str, output_md_path: str = None, model_size: str = "base"):
+def extract_timestamps(audio_path: str, output_json_path: str, output_md_path: str = None, model_size: str = "base", initial_prompt: str = None):
     print(f"Loading faster-whisper model ({model_size})...")
     model = WhisperModel(model_size, device="cpu", compute_type="int8")
 
@@ -35,14 +35,18 @@ def extract_timestamps(audio_path: str, output_json_path: str, output_md_path: s
     pcm_audio = load_audio_ffmpeg(audio_path)
 
     print(f"Transcribing & extracting word-level timestamps...")
-    segments, info = model.transcribe(
-        pcm_audio,
+    transcribe_kwargs = dict(
         language="id",
         word_timestamps=True,
         beam_size=5,
         vad_filter=True,
         vad_parameters=dict(min_silence_duration_ms=250),
     )
+    if initial_prompt:
+        transcribe_kwargs["initial_prompt"] = initial_prompt
+        print(f"[+] Using initial domain prompt ({len(initial_prompt)} chars) to prevent word hallucination")
+
+    segments, info = model.transcribe(pcm_audio, **transcribe_kwargs)
 
     total_duration = info.duration
     fps = 30
@@ -124,5 +128,20 @@ if __name__ == "__main__":
     parser.add_argument("output_json", help="Output JSON path.")
     parser.add_argument("output_md", nargs="?", default=None, help="Optional Markdown summary path.")
     parser.add_argument("--model-size", default="base", help="Whisper model size (tiny, base, small, medium).")
+    parser.add_argument("--prompt", default=None, help="Optional text prompt to condition vocabulary and names.")
+    parser.add_argument("--script-json", default=None, help="Optional path to tts_script.json or speaker_turns.json.")
     args = parser.parse_args()
-    extract_timestamps(args.audio_path, args.output_json, args.output_md, args.model_size)
+
+    prompt = args.prompt
+    if not prompt and args.script_json and os.path.exists(args.script_json):
+        try:
+            with open(args.script_json, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            if isinstance(data, list):
+                prompt = " ".join(item.get("text", "") for item in data)
+            elif isinstance(data, dict) and "turns" in data:
+                prompt = " ".join(turn.get("text", "") for turn in data["turns"])
+        except Exception as e:
+            print(f"[!] Warning reading script JSON for prompt: {e}")
+
+    extract_timestamps(args.audio_path, args.output_json, args.output_md, args.model_size, prompt)

@@ -16,7 +16,8 @@ export type BodyPose =
   | 'shrug'
   | 'point'
   | 'think'
-  | 'idle';
+  | 'idle'
+  | 'shock';
 export type MouthShape = 'closed' | 'open_a' | 'open_o' | 'wide_e' | 'narrow_u';
 
 export interface AlphaCharacterProps {
@@ -77,7 +78,8 @@ export const AlphaCharacter: React.FC<AlphaCharacterProps> = ({
   const acousticOpen = mouthOpen !== undefined ? Math.max(0, Math.min(1, mouthOpen)) : 0;
   const speaking = acousticOpen >= 0.08 || Boolean(isTalking);
 
-  const isShock = expression === 'shock' || expression === 'tense';
+  const isShock = expression === 'shock';
+  const isTense = expression === 'tense';
 
   const resolvedShape: MouthShape = !speaking
     ? 'closed'
@@ -98,9 +100,11 @@ export const AlphaCharacter: React.FC<AlphaCharacterProps> = ({
       ? -4.5
       : expression === 'smug'
         ? 3.8
-        : expression === 'tense' || expression === 'shock'
+        : expression === 'shock'
           ? -2.0 + Math.sin(t * 12) * 0.8
-          : wave(tMs, 3400) * 1.8;
+          : expression === 'tense'
+            ? -1.2 + Math.sin(t * 4) * 0.5
+            : wave(tMs, 3400) * 1.8;
 
   // Asymmetric clip-safe blink + smooth pupil gaze (Rossark Motion)
   const blink = computeBlinkLid(tMs, 3400, 0, 3);
@@ -112,7 +116,7 @@ export const AlphaCharacter: React.FC<AlphaCharacterProps> = ({
   const stringSwingRight = Math.cos(t * 3.2) * 5.0;
 
   const renderArmsAndHands = () => {
-    if (isShock) {
+    if (bodyPose === 'shock') {
       // SHOCK / HORROR POSE: Both hands cupping cheeks (matching 3D model)
       const tremble = Math.sin(t * 18) * 2;
       return (
@@ -188,6 +192,64 @@ export const AlphaCharacter: React.FC<AlphaCharacterProps> = ({
       );
     }
 
+    if (bodyPose === 'think') {
+      // THINK / PONDERING POSE: One hand under chin, contemplative horror narrator
+      const thinkSway = Math.sin(t * 3) * 3;
+      return (
+        <g id="think-arms">
+          {/* Left Arm Resting naturally across waist */}
+          <path
+            d="M 118 278 Q 100 340 126 395"
+            fill="none"
+            stroke="url(#hoodieMain)"
+            strokeWidth="36"
+            strokeLinecap="round"
+          />
+          <path
+            d="M 118 278 Q 100 340 126 395"
+            fill="none"
+            stroke="#18181C"
+            strokeWidth="5"
+            strokeLinecap="round"
+          />
+          <rect x="114" y="388" width="28" height="14" rx="6" transform="rotate(15 126 395)" fill="url(#hoodiePocket)" stroke="#18181C" strokeWidth="3" />
+          <circle cx="132" cy="406" r="16" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="4" />
+
+          {/* Right Arm Raised to Chin */}
+          <path
+            d={`M 282 278 Q 320 330 ${256 + thinkSway} 242`}
+            fill="none"
+            stroke="url(#hoodieMain)"
+            strokeWidth="36"
+            strokeLinecap="round"
+          />
+          <path
+            d={`M 282 278 Q 320 330 ${256 + thinkSway} 242`}
+            fill="none"
+            stroke="#18181C"
+            strokeWidth="5"
+            strokeLinecap="round"
+          />
+          <rect
+            x={244 + thinkSway}
+            y={234}
+            width="28"
+            height="14"
+            rx="6"
+            transform={`rotate(-40 ${256 + thinkSway} 242)`}
+            fill="url(#hoodiePocket)"
+            stroke="#18181C"
+            strokeWidth="3.5"
+          />
+          <g transform={`translate(${244 + thinkSway}, 232) rotate(-20)`}>
+            <ellipse cx="0" cy="0" rx="15" ry="13" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="4" />
+            <circle cx="-6" cy="-6" r="4.5" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="3" />
+            <circle cx="6" cy="-3" r="4" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="3" />
+          </g>
+        </g>
+      );
+    }
+
     if (bodyPose === 'gesture_left') {
       const sway = Math.sin(t * 5) * 6;
       return (
@@ -226,23 +288,23 @@ export const AlphaCharacter: React.FC<AlphaCharacterProps> = ({
             <circle cx="-8" cy="-6" r="4.5" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="3" />
           </g>
 
-          {/* Right Arm Idle along Torso */}
+          {/* Right Arm Relaxed across Waist */}
           <path
-            d="M 282 278 Q 305 340 292 395"
+            d="M 282 278 Q 298 340 272 395"
             fill="none"
             stroke="url(#hoodieMain)"
             strokeWidth="36"
             strokeLinecap="round"
           />
           <path
-            d="M 282 278 Q 305 340 292 395"
+            d="M 282 278 Q 298 340 272 395"
             fill="none"
             stroke="#18181C"
             strokeWidth="5"
             strokeLinecap="round"
           />
-          <rect x="278" y="385" width="28" height="14" rx="6" fill="url(#hoodiePocket)" stroke="#18181C" strokeWidth="3" />
-          <circle cx="292" cy="408" r="16" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="4" />
+          <rect x="258" y="388" width="28" height="14" rx="6" transform="rotate(-15 272 395)" fill="url(#hoodiePocket)" stroke="#18181C" strokeWidth="3" />
+          <circle cx="266" cy="406" r="16" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="4" />
         </g>
       );
     }
@@ -251,23 +313,23 @@ export const AlphaCharacter: React.FC<AlphaCharacterProps> = ({
       const sway = Math.sin(t * 5) * 6;
       return (
         <g id="gesture-right-arms">
-          {/* Left Arm Idle along Torso */}
+          {/* Left Arm Relaxed across Waist */}
           <path
-            d="M 118 278 Q 95 340 108 395"
+            d="M 118 278 Q 102 340 128 395"
             fill="none"
             stroke="url(#hoodieMain)"
             strokeWidth="36"
             strokeLinecap="round"
           />
           <path
-            d="M 118 278 Q 95 340 108 395"
+            d="M 118 278 Q 102 340 128 395"
             fill="none"
             stroke="#18181C"
             strokeWidth="5"
             strokeLinecap="round"
           />
-          <rect x="94" y="385" width="28" height="14" rx="6" fill="url(#hoodiePocket)" stroke="#18181C" strokeWidth="3" />
-          <circle cx="108" cy="408" r="16" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="4" />
+          <rect x="114" y="388" width="28" height="14" rx="6" transform="rotate(15 128 395)" fill="url(#hoodiePocket)" stroke="#18181C" strokeWidth="3" />
+          <circle cx="134" cy="406" r="16" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="4" />
 
           {/* Right Arm Gesturing Outward */}
           <path
@@ -312,21 +374,21 @@ export const AlphaCharacter: React.FC<AlphaCharacterProps> = ({
         <g id="wave-arms">
           {/* Left Arm Idle */}
           <path
-            d="M 118 278 Q 95 340 108 395"
+            d="M 118 278 Q 102 340 128 395"
             fill="none"
             stroke="url(#hoodieMain)"
             strokeWidth="36"
             strokeLinecap="round"
           />
           <path
-            d="M 118 278 Q 95 340 108 395"
+            d="M 118 278 Q 102 340 128 395"
             fill="none"
             stroke="#18181C"
             strokeWidth="5"
             strokeLinecap="round"
           />
-          <rect x="94" y="385" width="28" height="14" rx="6" fill="url(#hoodiePocket)" stroke="#18181C" strokeWidth="3" />
-          <circle cx="108" cy="408" r="16" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="4" />
+          <rect x="114" y="388" width="28" height="14" rx="6" transform="rotate(15 128 395)" fill="url(#hoodiePocket)" stroke="#18181C" strokeWidth="3" />
+          <circle cx="134" cy="406" r="16" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="4" />
 
           {/* Right Arm Waving High */}
           <path
@@ -354,44 +416,45 @@ export const AlphaCharacter: React.FC<AlphaCharacterProps> = ({
       );
     }
 
-    // Default: Natural Idle with hands clearly visible resting alongside torso
+    // Default: Natural storytelling resting arms with subtle breathing sway
+    const restSway = Math.sin(t * 2.6) * 2;
     return (
       <g id="idle-arms">
         {/* Left Arm */}
         <path
-          d="M 118 278 Q 88 340 98 400"
+          d={`M 118 278 Q 100 340 ${126 + restSway} 395`}
           fill="none"
           stroke="url(#hoodieMain)"
           strokeWidth="36"
           strokeLinecap="round"
         />
         <path
-          d="M 118 278 Q 88 340 98 400"
+          d={`M 118 278 Q 100 340 ${126 + restSway} 395`}
           fill="none"
           stroke="#18181C"
           strokeWidth="5"
           strokeLinecap="round"
         />
-        <rect x="84" y="390" width="28" height="14" rx="6" fill="url(#hoodiePocket)" stroke="#18181C" strokeWidth="3" />
-        <circle cx="98" cy="414" r="16" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="4" />
+        <rect x={112 + restSway} y="388" width="28" height="14" rx="6" transform={`rotate(15 ${126 + restSway} 395)`} fill="url(#hoodiePocket)" stroke="#18181C" strokeWidth="3" />
+        <circle cx={130 + restSway} cy="406" r="16" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="4" />
 
         {/* Right Arm */}
         <path
-          d="M 282 278 Q 312 340 302 400"
+          d={`M 282 278 Q 300 340 ${274 - restSway} 395`}
           fill="none"
           stroke="url(#hoodieMain)"
           strokeWidth="36"
           strokeLinecap="round"
         />
         <path
-          d="M 282 278 Q 312 340 302 400"
+          d={`M 282 278 Q 300 340 ${274 - restSway} 395`}
           fill="none"
           stroke="#18181C"
           strokeWidth="5"
           strokeLinecap="round"
         />
-        <rect x="288" y="390" width="28" height="14" rx="6" fill="url(#hoodiePocket)" stroke="#18181C" strokeWidth="3" />
-        <circle cx="302" cy="414" r="16" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="4" />
+        <rect x={260 - restSway} y="388" width="28" height="14" rx="6" transform={`rotate(-15 ${274 - restSway} 395)`} fill="url(#hoodiePocket)" stroke="#18181C" strokeWidth="3" />
+        <circle cx={270 - restSway} cy="406" r="16" fill="url(#skinGrad)" stroke="#18181C" strokeWidth="4" />
       </g>
     );
   };
@@ -433,6 +496,31 @@ export const AlphaCharacter: React.FC<AlphaCharacterProps> = ({
       );
     }
 
+    if (isTense) {
+      // Intense, suspenseful storyteller gaze (focused irises, intense slightly furrowed brows)
+      return (
+        <>
+          {/* Left Eye */}
+          <g transform={`translate(170, 180) scale(1, ${eyeScaleY * 0.94}) translate(-170, -180)`}>
+            <ellipse cx="170" cy="180" rx="15" ry="16" fill="#FFFFFF" stroke="#18181C" strokeWidth="3.5" />
+            <ellipse cx={170 + gaze.x * 0.5} cy={180 + gaze.y * 0.5} rx="10" ry="12" fill="url(#irisGrad)" />
+            <circle cx={170 + gaze.x * 0.5} cy={180 + gaze.y * 0.5} r="5.5" fill="#0A0E1A" />
+            <circle cx={167 + gaze.x * 0.5} cy={175 + gaze.y * 0.5} r="3.8" fill="#FFFFFF" />
+          </g>
+          {/* Right Eye */}
+          <g transform={`translate(230, 180) scale(1, ${eyeScaleY * 0.94}) translate(-230, -180)`}>
+            <ellipse cx="230" cy="180" rx="15" ry="16" fill="#FFFFFF" stroke="#18181C" strokeWidth="3.5" />
+            <ellipse cx={230 + gaze.x * 0.5} cy={180 + gaze.y * 0.5} rx="10" ry="12" fill="url(#irisGrad)" />
+            <circle cx={230 + gaze.x * 0.5} cy={180 + gaze.y * 0.5} r="5.5" fill="#0A0E1A" />
+            <circle cx={227 + gaze.x * 0.5} cy={175 + gaze.y * 0.5} r="3.8" fill="#FFFFFF" />
+          </g>
+          {/* Intense tense storytelling brows */}
+          <path d="M 152 160 Q 170 166 188 158" stroke="#18181C" strokeWidth="5.5" fill="none" strokeLinecap="round" />
+          <path d="M 212 158 Q 230 166 248 160" stroke="#18181C" strokeWidth="5.5" fill="none" strokeLinecap="round" />
+        </>
+      );
+    }
+
     // Default: Big Sparkling Kok Bisa Anime Eyes with Dual Glossy Catchlights
     return (
       <>
@@ -470,6 +558,11 @@ export const AlphaCharacter: React.FC<AlphaCharacterProps> = ({
       if (isShock) {
         return (
           <ellipse cx="200" cy="225" rx="9" ry="14" fill="#3B070C" stroke="#18181C" strokeWidth="4" />
+        );
+      }
+      if (isTense) {
+        return (
+          <path d="M 188 223 Q 200 220 212 223" stroke="#18181C" strokeWidth="4" fill="none" strokeLinecap="round" />
         );
       }
       if (expression === 'smug') {

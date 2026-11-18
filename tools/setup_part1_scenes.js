@@ -9,6 +9,7 @@ const templateSrc = path.resolve(process.cwd(), 'templates', 'part-template', 's
 console.log(`Setting up Remotion code for: ${targetDir}`);
 
 fs.mkdirSync(path.join(absTarget, 'src'), { recursive: true });
+fs.mkdirSync(path.join(absTarget, 'audio'), { recursive: true });
 fs.mkdirSync(path.join(absTarget, 'public', 'audio'), { recursive: true });
 
 // 1. Copy audio to public/audio/vo.mp3
@@ -19,12 +20,20 @@ if (fs.existsSync(audioSrc)) {
   console.log(`[+] Copied master audio: ${audioDst}`);
 }
 
-// 2. Copy word_timestamps.json to src/word_timestamps.json
-const wtSrc = path.join(absTarget, 'audio', 'word_timestamps.json');
+// 2. Copy accurate word_timestamps.json
+const correctedWt = path.resolve(process.cwd(), 'tools', 'part1_word_timestamps_corrected.json');
 const wtDst = path.join(absTarget, 'src', 'word_timestamps.json');
-if (fs.existsSync(wtSrc)) {
-  fs.copyFileSync(wtSrc, wtDst);
-  console.log(`[+] Copied timestamps: ${wtDst}`);
+const wtAudioDst = path.join(absTarget, 'audio', 'word_timestamps.json');
+if (fs.existsSync(correctedWt)) {
+  fs.copyFileSync(correctedWt, wtDst);
+  fs.copyFileSync(correctedWt, wtAudioDst);
+  console.log(`[+] Copied corrected accurate timestamps to: ${wtDst}`);
+} else {
+  const wtSrc = path.join(absTarget, 'audio', 'word_timestamps.json');
+  if (fs.existsSync(wtSrc)) {
+    fs.copyFileSync(wtSrc, wtDst);
+    console.log(`[+] Copied timestamps: ${wtDst}`);
+  }
 }
 
 // 3. Copy Root.tsx, Video.tsx, index.ts
@@ -50,7 +59,7 @@ export const VOICEOVER = 'audio/vo.mp3';
 export const BGM_FILE: string | null = null;
 export const BGM_VOLUME = 0.08;
 
-export type SceneId = 's1' | 's2' | 's3';
+export type SceneId = 's1' | 's2' | 's3' | 's4';
 
 export interface Shot {
   id: string;
@@ -73,7 +82,7 @@ export const SHOTS: Shot[] = [
   {id: 'shot-1', scene: 's1', from: 0, to: 525, enterStyle: 'zoom-punch'},
   {id: 'shot-2', scene: 's2', from: 525, to: 1074, enterStyle: 'whip-left'},
   {id: 'shot-3', scene: 's3', from: 1074, to: 1725, enterStyle: 'depth-dolly'},
-  {id: 'shot-4', scene: 's1', from: 1725, to: 2585, enterStyle: 'whip-right'},
+  {id: 'shot-4', scene: 's4', from: 1725, to: 2585, enterStyle: 'whip-right'},
 ];
 
 export const SCENE_TRANSITIONS: Array<{
@@ -191,7 +200,7 @@ export const SceneRenderer: React.FC<{
         {CHARACTER_MODE === '3d_webgl' ? (
           <div style={{position: 'absolute', inset: 0, zIndex: 10, pointerEvents: 'none'}}>
             <AlphaCharacter3D
-              expression="shock"
+              expression="tense"
               pose="idle"
               mouthOpen={mouthOpen}
               scale={0.85}
@@ -250,7 +259,7 @@ export const SceneRenderer: React.FC<{
         {CHARACTER_MODE === '3d_webgl' ? (
           <div style={{position: 'absolute', inset: 0, zIndex: 10, pointerEvents: 'none'}}>
             <AlphaCharacter3D
-              expression="shock"
+              expression="tense"
               pose="idle"
               mouthOpen={mouthOpen}
               scale={0.85}
@@ -274,7 +283,7 @@ export const SceneRenderer: React.FC<{
           >
             <AlphaCharacter
               scale={1.75}
-              expression="shock"
+              expression="tense"
               bodyPose="gesture_right"
               mouthOpen={mouthOpen}
               activeWord={activeWord}
@@ -286,31 +295,89 @@ export const SceneRenderer: React.FC<{
     );
   }
 
+  if (id === 's3') {
+    return (
+      <SpatialCameraRig zoomFrom={1.0} zoomTo={1.06} durationFrames={duration}>
+        <RoomBackdrop preset="horror-dark" effect="horror-glitch" />
+        <HeadlineCapsule
+          badge="TEROR GAIB • POS 5"
+          badgeColor="#A855F7"
+          borderColor="#7E22CE"
+          title="ALUNAN GAMELAN GAIB"
+        />
+        <StoryVisualPlate
+          title="Derap Langkah Tanpa Wujud"
+          detail="Riuh tawar-menawar terdengar jelas di tengah kabut pekat"
+          accent="#A855F7"
+        />
+        {CHARACTER_MODE === '3d_webgl' ? (
+          <div style={{position: 'absolute', inset: 0, zIndex: 10, pointerEvents: 'none'}}>
+            <AlphaCharacter3D
+              expression="tense"
+              pose="idle"
+              mouthOpen={mouthOpen}
+              scale={0.85}
+              cameraAngle={0.12}
+              cameraPitch={0.03}
+              showPedestal={false}
+              rimLightColor={0xa855f7}
+            />
+          </div>
+        ) : (
+          <AliveCharacterRig
+            mouthOpen={mouthOpen}
+            enterFrom="bottom"
+            style={{
+              position: 'absolute',
+              bottom: 370,
+              left: '50%',
+              transform: 'translateX(-50%)',
+              zIndex: 15,
+            }}
+          >
+            <AlphaCharacter
+              scale={1.75}
+              expression="tense"
+              bodyPose="think"
+              mouthOpen={mouthOpen}
+              activeWord={activeWord}
+              rimColor="#A855F7"
+            />
+          </AliveCharacterRig>
+        )}
+      </SpatialCameraRig>
+    );
+  }
+
+  // Scene 4: Climax & Chilling Whisper
+  const isWhisperClimax = localFrame >= 525 && localFrame < 720;
+  const s4Expression = isWhisperClimax ? 'shock' : 'tense';
+  const s4Pose = isWhisperClimax ? 'shock' : localFrame >= 720 ? 'gesture_right' : 'gesture_left';
+
   return (
-    <SpatialCameraRig zoomFrom={1.0} zoomTo={1.06} durationFrames={duration}>
-      <RoomBackdrop preset="horror-dark" effect="horror-glitch" />
+    <SpatialCameraRig zoomFrom={1.02} zoomTo={1.08} durationFrames={duration}>
+      <RoomBackdrop preset="horror-dark" effect="vignette-pulse" />
       <HeadlineCapsule
         badge="BISIKAN GAIB • POS 5"
-        badgeColor="#A855F7"
-        borderColor="#7E22CE"
+        badgeColor="#EF4444"
+        borderColor="#DC2626"
         title="MAU BELI APA, MAS?"
       />
       <StoryVisualPlate
-        title="Alunan Gamelan Gaib"
-        detail="Riuh tawar-menawar terdengar jelas di tengah kabut pekat"
-        accent="#A855F7"
+        title="Napas Dingin di Tengkuk"
+        detail="Suara berbisik persis di belakang telinga • Menanti kelanjutan di Part 2"
+        accent="#EF4444"
       />
       {CHARACTER_MODE === '3d_webgl' ? (
         <div style={{position: 'absolute', inset: 0, zIndex: 10, pointerEvents: 'none'}}>
           <AlphaCharacter3D
-            expression="shock"
+            expression={s4Expression}
             pose="idle"
             mouthOpen={mouthOpen}
             scale={0.85}
-            cameraAngle={0.12}
             cameraPitch={0.03}
             showPedestal={false}
-            rimLightColor={0xa855f7}
+            rimLightColor={isWhisperClimax ? 0xef4444 : 0xa855f7}
           />
         </div>
       ) : (
@@ -327,11 +394,11 @@ export const SceneRenderer: React.FC<{
         >
           <AlphaCharacter
             scale={1.75}
-            expression="tense"
-            bodyPose="think"
+            expression={s4Expression}
+            bodyPose={s4Pose}
             mouthOpen={mouthOpen}
             activeWord={activeWord}
-            rimColor="#A855F7"
+            rimColor={isWhisperClimax ? '#EF4444' : '#A855F7'}
           />
         </AliveCharacterRig>
       )}
@@ -340,6 +407,6 @@ export const SceneRenderer: React.FC<{
 };
 `;
 fs.writeFileSync(path.join(absTarget, 'src', 'scenes.tsx'), scenesContent, 'utf8');
-console.log(`[+] Generated: src/scenes.tsx (2-layer studio scenes)`);
+console.log(`[+] Generated: src/scenes.tsx (4 tailored studio scenes with dynamic narrator poses)`);
 
-console.log('\\n[SUCCESS] All Remotion files created for part-1!');
+console.log('\n[SUCCESS] All Remotion files created for part-1!');
