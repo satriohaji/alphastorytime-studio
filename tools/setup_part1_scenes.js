@@ -169,20 +169,13 @@ export const SceneRenderer: React.FC<{
 
   if (id === 's1') {
     return (
-      <SpatialCameraRig
-        duration={duration}
-        cameraStyle="subtle-drift"
-        intensity={0.4}
-      >
-        <RoomBackdrop
-          preset="horror-dark"
-          storyMood="horror"
-          roomEffects={['floating-dust', 'vignette']}
-        />
+      <SpatialCameraRig zoomFrom={1.0} zoomTo={1.05} durationFrames={duration}>
+        <RoomBackdrop preset="horror-dark" effect="vignette-pulse" />
         <HeadlineCapsule
-          tag="KISAH NYATA • GUNUNG LAWU"
+          badge="KISAH NYATA • GUNUNG LAWU"
+          badgeColor="#EF4444"
+          borderColor="#DC2626"
           title="PASAR SETAN 2800 MDPL"
-          accent="#EF4444"
         />
         <StoryVisualPlate
           title="Misteri Sabana Pos 5"
@@ -190,26 +183,24 @@ export const SceneRenderer: React.FC<{
           accent="#EF4444"
         />
         <AliveCharacterRig
-          duration={duration}
-          motionStyle="talking"
-          swaySpeed={1.0}
+          mouthOpen={mouthOpen}
+          enterFrom="bottom"
+          style={{
+            position: 'absolute',
+            bottom: 370,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 15,
+          }}
         >
-          <div
-            style={{
-              position: 'absolute',
-              bottom: 240,
-              left: '50%',
-              transform: 'translateX(-50%)',
-            }}
-          >
-            <AlphaCharacter
-              mouthOpen={mouthOpen}
-              currentWord={activeWord}
-              gaze="center"
-              size={540}
-              bodyColor="#1E293B"
-            />
-          </div>
+          <AlphaCharacter
+            scale={1.75}
+            expression="tense"
+            bodyPose="gesture_left"
+            mouthOpen={mouthOpen}
+            activeWord={activeWord}
+            rimColor="#EF4444"
+          />
         </AliveCharacterRig>
       </SpatialCameraRig>
     );
@@ -218,19 +209,18 @@ export const SceneRenderer: React.FC<{
   if (id === 's2') {
     return (
       <SpatialCameraRig
-        duration={duration}
-        cameraStyle="focus-push"
-        intensity={0.5}
+        zoomFrom={1.02}
+        zoomTo={1.07}
+        shakeFrame={120}
+        shakeIntensity={10}
+        durationFrames={duration}
       >
-        <RoomBackdrop
-          preset="mystery-cold"
-          storyMood="mystery"
-          roomEffects={['cold-window-rain', 'vignette']}
-        />
+        <RoomBackdrop preset="mystery-cold" effect="fog-drift" />
         <HeadlineCapsule
-          tag="JALUR CANDI CETHO"
+          badge="JALUR CANDI CETHO"
+          badgeColor="#38BDF8"
+          borderColor="#0284C7"
           title="JEJAK SENTER TERPUTUS"
-          accent="#06B6D4"
         />
         <StoryVisualPlate
           title="Raka Tersesat di Sabana"
@@ -238,46 +228,37 @@ export const SceneRenderer: React.FC<{
           accent="#06B6D4"
         />
         <AliveCharacterRig
-          duration={duration}
-          motionStyle="intense"
-          swaySpeed={1.2}
+          mouthOpen={mouthOpen}
+          enterFrom="bottom"
+          style={{
+            position: 'absolute',
+            bottom: 370,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 15,
+          }}
         >
-          <div
-            style={{
-              position: 'absolute',
-              bottom: 240,
-              left: '50%',
-              transform: 'translateX(-50%)',
-            }}
-          >
-            <AlphaCharacter
-              mouthOpen={mouthOpen}
-              currentWord={activeWord}
-              gaze="left"
-              size={540}
-              bodyColor="#0F172A"
-            />
-          </div>
+          <AlphaCharacter
+            scale={1.75}
+            expression="shock"
+            bodyPose="gesture_right"
+            mouthOpen={mouthOpen}
+            activeWord={activeWord}
+            rimColor="#06B6D4"
+          />
         </AliveCharacterRig>
       </SpatialCameraRig>
     );
   }
 
   return (
-    <SpatialCameraRig
-      duration={duration}
-      cameraStyle="sway-wide"
-      intensity={0.6}
-    >
-      <RoomBackdrop
-        preset="horror-dark"
-        storyMood="horror"
-        roomEffects={['flicker-tv', 'vignette']}
-      />
+    <SpatialCameraRig zoomFrom={1.0} zoomTo={1.06} durationFrames={duration}>
+      <RoomBackdrop preset="horror-dark" effect="horror-glitch" />
       <HeadlineCapsule
-        tag="BISIKAN GAIB • POS 5"
+        badge="BISIKAN GAIB • POS 5"
+        badgeColor="#A855F7"
+        borderColor="#7E22CE"
         title="MAU BELI APA, MAS?"
-        accent="#A855F7"
       />
       <StoryVisualPlate
         title="Alunan Gamelan Gaib"
@@ -285,26 +266,24 @@ export const SceneRenderer: React.FC<{
         accent="#A855F7"
       />
       <AliveCharacterRig
-        duration={duration}
-        motionStyle="suspense"
-        swaySpeed={0.8}
+        mouthOpen={mouthOpen}
+        enterFrom="bottom"
+        style={{
+          position: 'absolute',
+          bottom: 370,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 15,
+        }}
       >
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 240,
-            left: '50%',
-            transform: 'translateX(-50%)',
-          }}
-        >
-          <AlphaCharacter
-            mouthOpen={mouthOpen}
-            currentWord={activeWord}
-            gaze="right"
-            size={540}
-            bodyColor="#1E1B4B"
-          />
-        </div>
+        <AlphaCharacter
+          scale={1.75}
+          expression="tense"
+          bodyPose="think"
+          mouthOpen={mouthOpen}
+          activeWord={activeWord}
+          rimColor="#A855F7"
+        />
       </AliveCharacterRig>
     </SpatialCameraRig>
   );

@@ -229,6 +229,16 @@ function main() {
     },
   });
 
+  if ((child.status === 0 || child.status === null) && (parsed.command === 'still' || parsed.command === 'render')) {
+    const outFile = parsed.command === 'render'
+      ? (parsed.out ? path.resolve(process.cwd(), parsed.out) : path.join(absProjectDir, 'render', `${slugName}.mp4`))
+      : (parsed.out ? path.resolve(process.cwd(), parsed.out) : path.join(absProjectDir, 'previews', `frame_${String(parsed.frame).padStart(4, '0')}.png`));
+    if (fs.existsSync(outFile)) {
+      console.log(`\n[OUTPUT_MEDIA]`);
+      console.log(`MEDIA:${outFile}`);
+    }
+  }
+
   process.exit(child.status ?? 0);
 }
 

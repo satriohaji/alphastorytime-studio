@@ -388,11 +388,11 @@ export const HeadlineCapsule: React.FC<{
 
 export const AliveCharacterRig: React.FC<{
   children: React.ReactNode;
-  mouthOpen: number;
+  mouthOpen?: number;
   enterDelay?: number;
   enterFrom?: 'left' | 'right' | 'bottom';
   style?: React.CSSProperties;
-}> = ({children, mouthOpen, enterDelay = 0, enterFrom = 'bottom', style}) => {
+}> = ({children, mouthOpen = 0, enterDelay = 0, enterFrom = 'bottom', style}) => {
   const baseTransform = style?.transform ? `${style.transform} ` : '';
   const frame = useCurrentFrame();
   const {fps} = useVideoConfig();
@@ -404,9 +404,10 @@ export const AliveCharacterRig: React.FC<{
     config: {damping: 14, stiffness: 150, mass: 0.75},
   });
 
-  const stretchY = 1 + mouthOpen * 0.04;
+  const safeMouthOpen = typeof mouthOpen === 'number' && !isNaN(mouthOpen) ? Math.max(0, Math.min(1, mouthOpen)) : 0;
+  const stretchY = 1 + safeMouthOpen * 0.04;
   const squashX = preserveVolumeX(stretchY);
-  const talkTilt = wave(tMs, 760) * (mouthOpen * 2.4);
+  const talkTilt = wave(tMs, 760) * (safeMouthOpen * 2.4);
 
   const offsetX =
     enterFrom === 'left'
