@@ -221,6 +221,12 @@ function main() {
     stdio: 'inherit',
     cwd: REMOTION_DIR,
     shell: process.platform === 'win32',
+    env: {
+      ...process.env,
+      REMOTION_DIR: REMOTION_DIR,
+      REMOTION_SHARED_DIR: path.join(REMOTION_DIR, 'src', 'shared'),
+      REMOTION_NODE_MODULES: path.join(REMOTION_DIR, 'node_modules'),
+    },
   });
 
   process.exit(child.status ?? 0);

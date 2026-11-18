@@ -21,8 +21,16 @@ Config.setOverwriteOutput(true);
 Config.setChromiumOpenGlRenderer(renderer);
 
 Config.overrideWebpackConfig((currentConfiguration) => {
-  const nodeModulesDir = path.resolve(__dirname, 'node_modules');
-  const sharedDir = path.resolve(__dirname, 'src', 'shared');
+  const remotionDir =
+    process.env.REMOTION_DIR ||
+    (__dirname.includes('node_modules')
+      ? __dirname.slice(0, __dirname.indexOf('node_modules'))
+      : __dirname);
+  const sharedDir =
+    process.env.REMOTION_SHARED_DIR || path.resolve(remotionDir, 'src', 'shared');
+  const nodeModulesDir =
+    process.env.REMOTION_NODE_MODULES ||
+    path.resolve(remotionDir, 'node_modules');
 
   return {
     ...currentConfiguration,
