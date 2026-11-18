@@ -1,7 +1,20 @@
 import argparse
 import json
 import os
+import subprocess
+import numpy as np
 from faster_whisper import WhisperModel
+
+
+def load_audio_ffmpeg(file_path: str) -> np.ndarray:
+    """Decode any audio format directly via FFmpeg to 16kHz float32 mono PCM.
+    Bypasses PyAV version incompatibilities cleanly."""
+    cmd = [
+        "ffmpeg", "-nostdin", "-threads", "0", "-i", str(file_path),
+        "-f", "s16le", "-ac", "1", "-acodec", "pcm_s16le", "-ar", "16000", "-"
+    ]
+    res = subprocess.run(cmd, capture_output=True, check=True)
+    return np.frombuffer(res.stdout, np.int16).flatten().astype(np.float32) / 32768.0
 
 
 def sec_to_ts(sec: float) -> str:
@@ -18,9 +31,12 @@ def extract_timestamps(audio_path: str, output_json_path: str, output_md_path: s
     print(f"Loading faster-whisper model ({model_size})...")
     model = WhisperModel(model_size, device="cpu", compute_type="int8")
 
-    print(f"Transcribing & extracting word-level timestamps from: {audio_path}")
+    print(f"Decoding audio via FFmpeg: {audio_path}")
+    pcm_audio = load_audio_ffmpeg(audio_path)
+
+    print(f"Transcribing & extracting word-level timestamps...")
     segments, info = model.transcribe(
-        audio_path,
+        pcm_audio,
         language="id",
         word_timestamps=True,
         beam_size=5,
