@@ -270,7 +270,7 @@ def main():
     client = genai.Client(
         http_options={
             "api_version": cfg.get("api_version", "v1beta"),
-            "timeout": 60000,
+            "timeout": 45.0,
         }
     )
 
