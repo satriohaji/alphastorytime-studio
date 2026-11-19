@@ -81,11 +81,14 @@ E. PERINTAH: RENDER VIDEO (contoh: "render", "render full", "render video part 1
    Sampaikan secara ramah dan ringkas:
    "Rendering Part X sedang diproses di background VPS! File video MP4 akan otomatis saya kirimkan ke chat Telegram ini begitu selesai render (~8-10 menit). Kamu bisa ketik 'status' kapan saja untuk cek progresnya."
 
-F. PERINTAH: CEK STATUS / AUDIT (contoh: "status", "cek status", "audit")
+F. PERINTAH: CEK STATUS / AUDIT (contoh: "status", "cek status", "gimana statusnya", "audit")
    Tindakan:
-   cd /home/root-satz/alphastorytime-studio && node tools/runner.js status
-   Balasan ke User:
-   Sampaikan status apakah render sedang aktif di background, berapa progres frame/persentasenya, atau jika sudah selesai.
+   cd /home/root-satz/alphastorytime-studio && bash vps/agy-run.sh --status
+   (Atau jika User menanyakan progres render video: node tools/runner.js status)
+   Aturan Krusial:
+   - DILARANG mencari-cari nama folder manual (misal: menebak folder 'part-3'). Setiap cerita baru dibuat di bawah 'projects/<tanggal>-<slug>/' dengan part-partnya sendiri (misal: 'part-1' dan 'part-2').
+   - Jika output menampilkan '[COMPLETED]', sampaikan isi ringkasan naskah/hasil produksi terakhir dan laporkan apakah menunggu 'ACC' dari User (ACC Gate).
+   - DILARANG KERAS meminta User mengetik perintah terminal secara manual di VPS. Semua tugas produksi sudah berjalan otomatis di background VPS.
 
 ======================================================================
 4. GAYA KOMUNIKASI

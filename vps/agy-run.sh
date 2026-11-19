@@ -42,12 +42,22 @@ if [ "$MODE" = "--status" ]; then
       LATEST_LOG=$(ls -t "$REPO_ROOT/logs"/agy_*.log 2>/dev/null | head -n1 || true)
       echo "[RUNNING] Proses Antigravity aktif di background (PID: $PID)."
       if [ -n "$LATEST_LOG" ] && [ -f "$LATEST_LOG" ]; then
-        echo "--- 6 Baris Log Terakhir ---"
-        tail -n 6 "$LATEST_LOG"
+        echo "--- 8 Baris Log Terakhir ---"
+        tail -n 8 "$LATEST_LOG"
       fi
       exit 0
     fi
   fi
+
+  # Bila PID sudah selesai, laporkan hasil log produksi terakhir
+  LATEST_LOG=$(ls -t "$REPO_ROOT/logs"/agy_*.log 2>/dev/null | head -n1 || true)
+  if [ -n "$LATEST_LOG" ] && [ -f "$LATEST_LOG" ]; then
+    echo "[COMPLETED] Proses Antigravity terakhir telah SELESAI."
+    echo "--- Ringkasan Hasil Terakhir ---"
+    tail -n 25 "$LATEST_LOG"
+    exit 0
+  fi
+
   echo "[IDLE] Tidak ada proses produksi yang sedang berjalan."
   exit 0
 fi
@@ -102,10 +112,26 @@ if [ "$MODE" = "--bg" ] || [ "$MODE" = "--async" ] || [ "$MODE" = "--new" ] || [
     fi
     echo "=== Produksi Selesai: $(date) ===" >> "$LOG_FILE"
 
-    # Kirim notifikasi / video terbaru ke Telegram jika ada
-    LATEST_VIDEO=$(find "$REPO_ROOT/projects" -type f -name "*.mp4" -printf '%T@ %p\n' 2>/dev/null | sort -n | tail -1 | cut -f2- -d" " || true)
-    if [ -n "$LATEST_VIDEO" ] && [ -f "$REPO_ROOT/tools/send_telegram.sh" ]; then
-      bash "$REPO_ROOT/tools/send_telegram.sh" "$LATEST_VIDEO" "🎬 Video baru berhasil selesai diproduksi!" || true
+    # Kirim video terbaru ke Telegram jika ada video yang baru dirender (<10 menit)
+    RECENT_VIDEO=$(find "$REPO_ROOT/projects" -type f -name "*.mp4" -mmin -10 2>/dev/null | head -1 || true)
+    if [ -n "$RECENT_VIDEO" ] && [ -f "$REPO_ROOT/tools/send_telegram.sh" ]; then
+      bash "$REPO_ROOT/tools/send_telegram.sh" "$RECENT_VIDEO" "🎬 Video baru berhasil selesai diproduksi!" || true
+    fi
+
+    # Kirim notifikasi ringkasan / ACC Gate ke Telegram
+    if [ -f "$REPO_ROOT/tools/send_telegram.sh" ]; then
+      HANDOFF=$(grep -A 10 "---HERMES_HANDOFF---" "$LOG_FILE" 2>/dev/null || true)
+      if [ -n "$HANDOFF" ]; then
+        STATUS_INFO=$(echo "$HANDOFF" | grep "STATUS:" | head -1 || true)
+        NEXT_INFO=$(echo "$HANDOFF" | grep "NEXT_ACTION:" | head -1 || true)
+        PROJ_INFO=$(echo "$HANDOFF" | grep "PROJECT_DIR:" | head -1 || true)
+        MSG="✨ *Update AlphaStorytime Studio*
+$STATUS_INFO
+$PROJ_INFO
+
+$NEXT_INFO"
+        bash "$REPO_ROOT/tools/send_telegram.sh" --text "$MSG" || true
+      fi
     fi
     rm -f "$PID_FILE"
   ) > /dev/null 2>&1 &

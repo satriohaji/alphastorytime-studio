@@ -4,9 +4,7 @@ set -euo pipefail
 # Helper to send Photo/Video directly to Telegram chat
 # Usage:
 #   bash tools/send_telegram.sh <file_path> [caption]
-
-FILE="${1:?File path required}"
-CAPTION="${2:-}"
+#   bash tools/send_telegram.sh --text "<message>"
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -24,6 +22,23 @@ CHAT_ID="${TELEGRAM_CHAT_ID:-}"
 if [ -z "$BOT_TOKEN" ] && [ -f "$HOME/.hermes/config.yaml" ]; then
   BOT_TOKEN=$(grep -E 'telegram_token|bot_token|token:' "$HOME/.hermes/config.yaml" 2>/dev/null | head -n1 | awk '{print $2}' | tr -d '"' || true)
 fi
+
+if [ "${1:-}" = "--text" ]; then
+  shift
+  TEXT="$*"
+  if [ -n "$BOT_TOKEN" ] && [ -n "$CHAT_ID" ]; then
+    curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
+      -d chat_id="${CHAT_ID}" \
+      --data-urlencode "text=${TEXT}" > /dev/null || true
+    echo "[SUCCESS] Text notification sent to Telegram."
+  else
+    echo "$TEXT"
+  fi
+  exit 0
+fi
+
+FILE="${1:?File path or --text required}"
+CAPTION="${2:-}"
 
 if [ -z "$BOT_TOKEN" ]; then
   # If no direct bot token, print Hermes MEDIA tag so Hermes Telegram bridge handles it
