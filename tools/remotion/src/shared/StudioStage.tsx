@@ -456,58 +456,80 @@ export const KineticWordSubtitle: React.FC<{
     })
     .filter((item) => Boolean(item.display));
 
-  let displayTokens = visibleTokens;
-  if (visibleTokens.length > 9) {
-    const mid = Math.ceil(visibleTokens.length / 2);
-    let activeIdx = visibleTokens.findIndex(
-      (item) => globalFrame >= item.w.start_frame && globalFrame <= item.w.end_frame + 3
+  if (visibleTokens.length === 0) return null;
+
+  // Find active word index
+  let activeIdx = visibleTokens.findIndex(
+    (item) => globalFrame >= item.w.start_frame && globalFrame <= item.w.end_frame + 2
+  );
+  if (activeIdx === -1) {
+    activeIdx = visibleTokens.reduce(
+      (acc, item, i) => (globalFrame >= item.w.start_frame ? i : acc),
+      0
     );
-    if (activeIdx === -1) {
-      activeIdx = visibleTokens.reduce(
-        (acc, item, i) => (globalFrame >= item.w.start_frame ? i : acc),
-        0
-      );
-    }
-    displayTokens = activeIdx >= mid ? visibleTokens.slice(mid) : visibleTokens.slice(0, mid);
   }
+
+  // Dynamic chunking: Group words into punchy 2-4 word phrases (respecting punctuation)
+  const chunks: Array<typeof visibleTokens> = [];
+  let currentChunk: typeof visibleTokens = [];
+
+  visibleTokens.forEach((token) => {
+    currentChunk.push(token);
+    const text = token.display.trim();
+    const hasPunct = /[.?!:,]$/.test(text);
+    if (currentChunk.length >= 4 || (currentChunk.length >= 2 && hasPunct)) {
+      chunks.push(currentChunk);
+      currentChunk = [];
+    }
+  });
+  if (currentChunk.length > 0) {
+    chunks.push(currentChunk);
+  }
+
+  // Match active chunk
+  const activeToken = visibleTokens[activeIdx] || visibleTokens[0];
+  const activeChunk =
+    chunks.find((c) => c.some((t) => t.idx === activeToken.idx)) || chunks[0];
 
   return (
     <div
       style={{
         position: 'absolute',
-        bottom: 260,
-        left: 70,
-        right: 70,
+        bottom: 240,
+        left: 0,
+        right: 0,
         display: 'flex',
         justifyContent: 'center',
+        alignItems: 'center',
         pointerEvents: 'none',
         zIndex: 90,
       }}
     >
       <div
         style={{
-          backgroundColor: 'rgba(9, 13, 22, 0.94)',
-          backdropFilter: 'blur(12px)',
+          backgroundColor: 'rgba(9, 13, 22, 0.88)',
+          backdropFilter: 'blur(16px)',
           color: '#FFFFFF',
-          padding: '14px 28px',
-          borderRadius: 22,
+          padding: '12px 28px',
+          borderRadius: 36,
           fontFamily: STORY_FONT,
-          fontSize: 34,
+          fontSize: 36,
           fontWeight: 800,
           textAlign: 'center',
-          lineHeight: 1.35,
-          maxWidth: 860,
-          boxShadow: '0 18px 40px rgba(0,0,0,0.6)',
-          border: '2px solid rgba(255,255,255,0.2)',
-          display: 'flex',
+          lineHeight: 1.25,
+          boxShadow: '0 12px 35px rgba(0,0,0,0.55)',
+          border: '1.5px solid rgba(255, 255, 255, 0.18)',
+          display: 'inline-flex',
           flexWrap: 'wrap',
           justifyContent: 'center',
-          gap: '8px 12px',
+          alignItems: 'center',
+          gap: '4px 10px',
+          maxWidth: 900,
         }}
       >
-        {displayTokens.map(({w, idx, display}) => {
-          const isCurrent = globalFrame >= w.start_frame && globalFrame <= w.end_frame + 3;
-          const isPast = globalFrame > w.end_frame + 3;
+        {activeChunk.map(({w, idx, display}) => {
+          const isCurrent = globalFrame >= w.start_frame && globalFrame <= w.end_frame + 2;
+          const isPast = globalFrame > w.end_frame + 2;
           const wordPop = isCurrent
             ? spring({
                 frame: globalFrame - w.start_frame,
@@ -515,17 +537,19 @@ export const KineticWordSubtitle: React.FC<{
                 config: {damping: 10, stiffness: 220},
               })
             : 0;
-          const scale = 1 + wordPop * 0.16;
+          const scale = 1 + wordPop * 0.14;
 
           return (
             <span
               key={idx}
               style={{
                 display: 'inline-block',
-                margin: '0 4px',
-                transform: `scale(${scale}) translateY(${wordPop * -4}px)`,
-                color: isCurrent ? highlightColor : isPast ? '#F8FAFC' : '#94A3B8',
-                textShadow: isCurrent ? '0 4px 16px rgba(250, 204, 21, 0.55)' : 'none',
+                margin: '0 3px',
+                transform: `scale(${scale}) translateY(${wordPop * -3}px)`,
+                color: isCurrent ? highlightColor : isPast ? '#FFFFFF' : '#94A3B8',
+                textShadow: isCurrent
+                  ? '0 0 16px rgba(250, 204, 21, 0.65), 0 2px 4px rgba(0,0,0,0.8)'
+                  : '0 2px 4px rgba(0,0,0,0.8)',
               }}
             >
               {display}
