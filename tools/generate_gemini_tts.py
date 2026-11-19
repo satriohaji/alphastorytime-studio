@@ -132,21 +132,23 @@ def synthesize_turn(client, model, fallback_model, voice_id, text, style, out_wa
                 ],
                 response_format={"type": "audio"},
                 generation_config={"speech_config": [{"voice": voice_id}]},
+                timeout=120.0,
             )
             if not interaction.output_audio or not interaction.output_audio.data:
                 raise RuntimeError("Empty audio response from Gemini API.")
             out_wav.write_bytes(base64.b64decode(interaction.output_audio.data))
             return active_model
-        except errors.APIError as err:
+        except (errors.APIError, Exception) as err:
             status = getattr(err, "status_code", None)
-            if status in (429, 500, 502, 503, 504):
-                if status == 429 and fallback_model and active_model != fallback_model:
-                    print(f"  [Quota 429 on {active_model}] Switching to fallback model: {fallback_model}")
+            is_timeout = "timeout" in err.__class__.__name__.lower() or "timeout" in str(err).lower()
+            if is_timeout or status in (429, 500, 502, 503, 504):
+                if (status == 429 or is_timeout) and fallback_model and active_model != fallback_model:
+                    print(f"  [Quota/Timeout on {active_model}] Switching to fallback model: {fallback_model}")
                     active_model = fallback_model
                     continue
                 if attempt < max_retries:
-                    wait_sec = extract_retry_delay(err, min(65.0, 20.0 * attempt))
-                    print(f"  [Retry {attempt}/{max_retries}] Status {status} on {active_model}, waiting {wait_sec:.0f}s...")
+                    wait_sec = extract_retry_delay(err, min(65.0, 15.0 * attempt))
+                    print(f"  [Retry {attempt}/{max_retries}] {err.__class__.__name__} on {active_model}, waiting {wait_sec:.0f}s...")
                     time.sleep(wait_sec)
                     continue
             raise
