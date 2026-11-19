@@ -267,7 +267,12 @@ def main():
     if len(turns) < len(raw_turns):
         print(f"Merged consecutive same-speaker lines: {len(raw_turns)} -> {len(turns)} API turns")
 
-    client = genai.Client(http_options={"api_version": cfg.get("api_version", "v1beta")})
+    client = genai.Client(
+        http_options={
+            "api_version": cfg.get("api_version", "v1beta"),
+            "timeout": 60000,
+        }
+    )
 
     processed = []
     for idx, item in enumerate(turns, start=1):
