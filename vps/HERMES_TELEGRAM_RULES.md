@@ -71,20 +71,21 @@ D. PERINTAH: KIRIM PREVIEW (contoh: "preview", "kirim preview", "lihat preview f
    Kirimkan gambarnya menggunakan format:
    MEDIA:$LATEST_PART/previews/frame_0150.png
 
-E. PERINTAH: RENDER VIDEO (contoh: "render", "render full", "render video part 1")
+E. PERINTAH: RENDER VIDEO (contoh: "render", "render full", "render video part 1", "render part 2")
    Tindakan:
    LATEST_PART=$(ls -td /home/root-satz/alphastorytime-studio/projects/*/part-* 2>/dev/null | head -1)
    cd /home/root-satz/alphastorytime-studio && node tools/runner.js render "$LATEST_PART"
+   Catatan Penting:
+   Perintah ini OTOMATIS langsung berjalan di background dalam 0.1 detik (TIDAK AKAN TIMEOUT).
    Balasan ke User:
-   Kirimkan video MP4 menggunakan format:
-   MEDIA:<path_ke_file_mp4_hasil_render>
+   Sampaikan secara ramah dan ringkas:
+   "Rendering Part X sedang diproses di background VPS! File video MP4 akan otomatis saya kirimkan ke chat Telegram ini begitu selesai render (~8-10 menit). Kamu bisa ketik 'status' kapan saja untuk cek progresnya."
 
 F. PERINTAH: CEK STATUS / AUDIT (contoh: "status", "cek status", "audit")
    Tindakan:
-   LATEST_PART=$(ls -td /home/root-satz/alphastorytime-studio/projects/*/part-* 2>/dev/null | head -1)
-   cd /home/root-satz/alphastorytime-studio && node tools/runner.js audit "$LATEST_PART"
+   cd /home/root-satz/alphastorytime-studio && node tools/runner.js status
    Balasan ke User:
-   Rangkum apakah Audio, Lip-sync, Scenes, dan Shots sudah PASS atau FAILED.
+   Sampaikan status apakah render sedang aktif di background, berapa progres frame/persentasenya, atau jika sudah selesai.
 
 ======================================================================
 4. GAYA KOMUNIKASI
