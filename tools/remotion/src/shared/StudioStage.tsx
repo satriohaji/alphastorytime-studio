@@ -495,7 +495,7 @@ export const KineticWordSubtitle: React.FC<{
     <div
       style={{
         position: 'absolute',
-        bottom: 240,
+        bottom: 430, // Safe Zone: Above TikTok/Reels caption, username & audio bar (0-380px)
         left: 0,
         right: 0,
         display: 'flex',
